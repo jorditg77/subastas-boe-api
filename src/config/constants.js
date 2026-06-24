@@ -1,24 +1,45 @@
 export const BOE_BASE_URL = 'https://subastas.boe.es';
+export const BOE_SEARCH_URL = `${BOE_BASE_URL}/subastas_ava.php`;
+export const BOE_DETAIL_URL = `${BOE_BASE_URL}/detalleSubasta.php`;
 
-export const BOE_STATUSES = {
-  PROXIMA: '1',
-  CELEBRANDOSE: '2',
-  SUSPENDIDA: '3',
-  FINALIZADA: '4',
-};
-
-export const BOE_ASSET_TYPES = {
-  INMUEBLES: '1',
-  VEHICULOS: '2',
-  MUEBLES: '3',
+// Códigos reales del formulario de búsqueda avanzada (subastas_ava.php),
+// confirmados inspeccionando el formulario en vivo: no son '1'/'2'/'3' como
+// cabría esperar, son los códigos internos de la base de datos del BOE.
+export const BOE_ORIGIN = {
   TODOS: '',
+  JUDICIAL: 'J',
+  NOTARIAL: 'N',
+  AEAT: 'A',
+  OTRAS_ADMIN_TRIBUTARIAS: 'R',
+  ADMIN_GENERALES: 'G',
 };
 
+export const BOE_STATUS = {
+  CUALQUIERA: '',
+  PROXIMA_APERTURA: 'PU',
+  CELEBRANDOSE: 'EJ',
+  SUSPENDIDA: 'SU',
+  CANCELADA: 'CA',
+  CONCLUIDA_PORTAL: 'PC',
+  FINALIZADA_AUTORIDAD: 'FS',
+};
+
+export const BOE_BIEN_TIPO = {
+  TODOS: '',
+  INMUEBLES: 'I',
+  VEHICULOS: 'V',
+  MUEBLES: 'M',
+};
+
+// Pestañas reales de detalleSubasta.php (parámetro `ver`). idSub solo (sin
+// idBus de sesión de búsqueda) es suficiente para que el portal resuelva la
+// página, verificado en vivo.
 export const BOE_TABS = {
-  GENERAL: '0',
-  AUTORIDAD: '1',
-  BIENES: '2',
-  PUJAS: '3',
+  GENERAL: '1',
+  AUTORIDAD: '2',
+  BIENES: '3',
+  RELACIONADOS: '4',
+  PUJAS: '5',
 };
 
 export const PROVINCES = [

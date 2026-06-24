@@ -6,7 +6,7 @@ import { getAuctionDetail } from '../../scrapers/detail.js';
 
 const searchQuerySchema = z.object({
   province: z.string().length(2).optional(),
-  status: z.enum(['proxima', 'celebrandose', 'suspendida', 'finalizada']).optional(),
+  status: z.enum(['proxima', 'celebrandose', 'suspendida', 'cancelada', 'concluida', 'finalizada']).optional(),
   type: z.enum(['inmuebles', 'vehiculos', 'muebles', 'todos']).default('todos'),
   minValue: z.coerce.number().min(0).optional(),
   maxValue: z.coerce.number().min(0).optional(),

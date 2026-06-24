@@ -10,7 +10,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 export async function buildServer() {
   const app = Fastify({
-    logger: logger.child({ module: 'http' }),
+    loggerInstance: logger.child({ module: 'http' }),
     disableRequestLogging: env.nodeEnv === 'production',
   });
 
