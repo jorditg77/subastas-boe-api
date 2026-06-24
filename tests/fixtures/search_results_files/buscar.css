@@ -1,0 +1,83 @@
+@import 'form.css';
+
+form fieldset#id_desplegable_inmuebles, form fieldset#id_desplegable_vehiculos,
+form fieldset#id_desplegable_muebles{
+  text-align: left; background-color:white; margin:1ex 0 1em 0; 
+  border: 1px solid rgba(160,176,192,0.8);
+}
+form fieldset.radio-check label {margin: 0.5em 0; display: inline-block;}
+
+fieldset#id_desplegable_inmuebles, fieldset#id_desplegable_vehiculos, fieldset#id_desplegable_muebles {display:none; order:99;}
+input#idTipoBienI[type="radio"]:checked ~ fieldset#id_desplegable_inmuebles,
+input#idTipoBienV[type="radio"]:checked ~ fieldset#id_desplegable_vehiculos,
+input#idTipoBienM[type="radio"]:checked ~ fieldset#id_desplegable_muebles {display:block;}
+
+div#id_autoridad_gestora {display:none;}
+input#idOrigenR[type="radio"]:checked ~ div#id_autoridad_gestora{display:block;}
+input#idOrigenG[type="radio"]:checked ~ div#id_autoridad_gestora{display:block;}
+
+form div.tabla.grupoCasillas {border-top:1px solid #ddd; margin-top:1em; padding-top:1em;}
+form span.grupoCasillas {display:inline-block; vertical-align:middle; margin:0 1em;}
+form div.tabla.grupoCasillas span.grupoCasillas:first-child .celda:first-child {min-width:25ex;}
+
+/* pagina resultados */
+.paginar, .paginar2 {
+  text-align:center; font-size:90%; padding:0; margin:0.5em 0;
+}
+.paginar {margin-top:2em;} 
+.paginar2 ul, .paginar ul {padding:0; line-height:1.5em;}
+.paginar2 ul li {display:inline; padding:0 .5em;}
+.paginar2 ul li a {border-width:0; text-decoration:none;}
+.paginar2 span.current {
+  font-weight:bold; padding:.2em .5em; background-color:#123a63; color:#fff;
+}
+li.resultado-busqueda {position:relative;}
+li.resultado-busqueda a.resultado-busqueda-link-otro {position:relative; z-index:50;}
+.listadoResult h3, .listadoResult h4, .listadoResult h5 {margin-top:0.3em;}
+.listadoResult h3 {font-size:1.1em;}
+.listadoResult h4 {font-size:1em; background-color:#fff;}
+.listadoResult h5 {font-size:0.9em;}
+.listadoResult p {margin:0.5em 0 0 1em;}
+.listadoResult ul {margin:0; padding:0; clear:left;}
+.listadoResult > ul > li {border-top:1px solid #aaa;}
+.listadoResult ul li {padding:0.5em;}
+.listadoResult ul li ul {display:block;}
+.listadoResult ul li ul li {display:inline-block; padding:0 1em;}
+.listadoResult .datosGaz {margin:0 1em;}
+.listadoResult .puntoPDF a {
+  background-image:url(../imagenes/puntoPDF_light_sign.png);
+  background:url(../imagenes/puntoPDF_light_sign.svg) no-repeat 0% 50%, none;
+}
+.listadoResult .puntoPDFsup a, .listadoResult .puntoPDF2 a {
+  background-image:url(../imagenes/puntoPDF_light.png);
+  background:url(../imagenes/puntoPDF_light.svg) no-repeat 0% 50%, none;
+}
+.listadoResult .puntoConso a {
+  background-image:url(../imagenes/puntoConso_light.png);
+  background:url(../imagenes/puntoConso_light.svg) no-repeat 0% 50%, none;
+}
+.listadoResult .puntoPDF a,  .listadoResult .puntoPDFsup a, .listadoResult .puntoPDF2 a, .listadoResult .puntoHTML a, .listadoResult .puntoConso a {background-size:32px auto;}
+li.resultado-busqueda a.resultado-busqueda-link-defecto {
+  background-image:none; display:block; position:absolute; margin:0; padding:0;
+  top:0; left:0; height:100%; width:100%; z-index:40;
+}
+
+/***** Movil!!! Para pantallas width width < 670px *****/
+@media (max-width:669px) {
+  .tabla, .fila, .celda, form span.grupoCasillas {display:block;}
+  form span.grupoCasillas {text-align:left; margin:0 3px;}
+  form span.grupoCasillas .celda {display:inline-block;}
+  .listadoResult ul li {padding-bottom:0.5em; padding-top:0.5em;}
+  p.fila textarea {min-width:95%; display:table; margin:1em auto;}
+}
+/***** Tablet!!! Para pantallas width 670px < width < 1023px *****/
+@media ( min-width :670px) and (max-width:1023px) {
+  /* index */
+  form .fila span.grupoCasillas .celda {min-width:0;}
+  form span.grupoCasillas {display:inline-block; margin-left:0;}
+  p.fila textarea {min-width:95%; display:table; margin:1em auto;}
+}
+/***** Tablet VERTICAL!!! Ajuste para formularios width 670px < width < 820px *****/
+@media ( min-width :670px) and (max-width:820px) {
+  form .fila .celda:first-child {min-width:0;}
+}

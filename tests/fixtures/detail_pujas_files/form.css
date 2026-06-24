@@ -1,0 +1,268 @@
+/*Formulario*/
+input[type="submit"], input[type="button"], textarea {
+  -webkit-appearance:none; -moz-appearance:none;
+}
+input, select, .boton, textarea {
+  border: 1px solid rgba(160,176,192,0.8);
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip:padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+  box-sizing:border-box; color:#5f5f5f; padding:6px;
+  border-radius:2px; -webkit-border-radius:2px; -moz-border-radius:2px; 
+  background-color:#ffffff;
+}
+input[type="file"] {border:0;}
+select {padding:5px;}
+div {box-sizing: border-box;}
+input[type="checkbox"], input[type="radio"], select {min-width:inherit;}
+input[type="checkbox"], input[type="radio"] {vertical-align:top; box-shadow:none;}
+.boton {
+  border: none; background-color:#eee; margin:0 auto; text-align:center; color:#123a63;
+  padding:0.5em 1em; max-width:92vw; 
+  -moz-box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+  -webkit-box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+  box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+}
+.botonGes {
+  border: none; 
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip:padding-box; /* for IE9+, Firefox 4+, Opera, Chrome */
+  box-sizing:border-box;
+  color:#8107c0; 
+  padding:0.5em 1em;
+  max-width:92vw;
+  border-radius:2px;
+  -webkit-border-radius:2px; 
+  -moz-border-radius:2px;
+  background-color:#fbf0ff;
+  margin:0.5em 2em;
+  text-align:center;
+  -moz-box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+  -webkit-box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+  box-shadow:0 1px 1px 0 rgba(0,0,0,0.28), 0 0 0 0.2px rgba(0,0,0,0.28);
+  display:inline-block;
+  vertical-align:middle;
+}
+
+.boton a, a.boton {text-decoration:none !important;}
+.boton:hover {cursor:pointer; background-color:#f3f3f3;}
+textarea{ width: 95%;}
+form {margin:1em 0;}
+form fieldset {
+  border: 1px solid #ddd; text-align:center; font-size:95%; padding:1em !important;
+  margin:1.5em 0;
+}
+.caja fieldset {margin:1.5em 1em;}
+form fieldset legend {padding:0 0.5em; text-align:left;}
+form fieldset .tabla {border:0;}
+form fieldset em {font-size:95%;}
+form fieldset.gris .caja:not(.gris) {background-color:#ffffff;}
+form input[type="radio"],
+form input[type="checkbox"] {
+  position:absolute; opacity:0; cursor:pointer; height:0; width:0;
+  -webkit-appearance:none; -moz-appearance: none;
+}
+form fieldset.radio-check label {margin:0.5em; display:inline-block;}
+form fieldset.radio-check {text-align:left; margin:1.5em 0;}
+form input[type="radio"] + label,
+form input[type="checkbox"] + label,  
+form .radio-check span:not(.celda, .celda2) {
+  position:relative; padding-left:1.6em; padding-right:1em; cursor:pointer;
+  -webkit-touch-callout: none; /* iOS Safari */ 
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */ 
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */ 
+  user-select: none;
+}
+.bloqueBotones {text-align:center; margin:1em 0}
+.bloqueBotones .boton {margin:0.5em 2em; display:inline-block; vertical-align:middle;}
+/* aspecto */
+form input[type="radio"] + label:before,
+form input[type="checkbox"] + label:before,
+form .radio-check span:not(.celda, .celda2):before{
+  content:''; position:absolute; left:0; top:0; width:1.25em; height:1.25em; 
+  background-color:#fff; border:solid 1px #ccc; box-sizing:border-box;
+}
+/* aspecto radio button */
+form input[type="radio"] + label:before,
+form .radio-check input[type="radio"] + span:before {
+  border-radius:50%; -webkit-border-radius:50%; -moz-border-radius:50%;
+}
+/* aspecto checkbox seleccionado */
+form input[type="checkbox"] + label:after,
+form .radio-check input[type="checkbox"] + span:after {
+  position:absolute; content:''; left:0.4em; top:0.13em; width:0.25em; height:0.6em;
+  border:solid white; border-width:0 0.2em 0.2em 0; -webkit-transform:rotate(45deg);
+  -ms-transform:rotate(45deg); transform:rotate(45deg); opacity:0;
+}
+/* aspecto radio seleccionado */
+form input[type="radio"] + label:after,
+form .radio-check input[type="radio"] + span:after  {
+  position:absolute; background-color:white; content:''; left:0; top:0; width:1.25em; height:1.25em;
+  border:.4em solid #123a63; border-radius:50%; -webkit-border-radius:50%; -moz-border-radius:50%;
+  opacity:0; box-sizing:border-box;
+}
+/* seleccionado */
+form input[type="radio"]:checked + label:after,
+form input[type="checkbox"]:checked + label:after,
+form .radio-check input:checked + span:after {opacity:1;}
+
+form input[type="radio"]:checked + label:before,
+form input[type="checkbox"]:checked + label:before,
+form .radio-check input:checked + span:before {background-color:#123a63;}
+
+/* disabled  */
+form input[type="radio"]:disabled + label:before,
+form input[type="checkbox"]:disabled + label:before,
+form .radio-check input:disabled + span:before {background-color:#ccc;}
+
+form input[type="radio"]:disabled:checked + label:after,
+form input[type="checkbox"]:disabled:checked + label:after,
+form .radio-check input:disabled + span:after {color: #999;}
+
+form input[type="radio"]:disabled + label,
+form input[type="checkbox"]:disabled + label,
+form .radio-check input:disabled + span {color:#aaa;}
+
+/* hover  */
+form input[type="radio"]:not(:disabled):not(:checked) + label:hover:before,
+form input[type="checkbox"]:not(:disabled):not(:checked) + label:hover:before
+form .radio-check input:not(disabled):not(checked) + span:hover:before {
+  background-color:#eee !important; border:solid 1px #ccc;
+}
+input[type="submit"].boton#primera, input[type="submit"].boton#ultima, input[type="submit"].boton#anterior, input[type="submit"].boton#siguiente, a.boton#aAnterior, a.boton#aSiguiente, a.boton#aPrimera, a.boton#aUltima {
+  color: transparent;
+  width: 35px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+input[type="submit"].boton#anterior, a.boton#aAnterior {
+  background-image: url(/imagenes/previousArrow.png);
+  background: url(/imagenes/previousArrow.svg) no-repeat 50% 50%, rgba(160,176,192,0.2);
+}
+input[type="submit"].boton#siguiente, a.boton#aSiguiente {
+  background-image: url(/imagenes/nextArrow.png);
+  background: url(/imagenes/nextArrow.svg) no-repeat 50% 50%, rgba(160,176,192,0.2);
+}
+input[type="submit"].boton#primera, a.boton#aPrimera {
+  background-image: url(/imagenes/firstArrow.png);
+  background: url(/imagenes/firstArrow.svg) no-repeat 50% 50%, rgba(160,176,192,0.2);
+}
+input[type="submit"].boton#ultima, a.boton#aUltima {
+  background-image: url(/imagenes/lastArrow.png);
+  background: url(/imagenes/lastArrow.svg) no-repeat 50% 50%, rgba(160,176,192,0.2);
+}
+input[type="submit"].boton#anteriorGes, input[type="submit"].boton#button_volver{
+  padding-left:1.5em;
+  color:#8107c0;
+  background-position: left;
+  background-repeat: no-repeat;
+  background-image: url(/imagenes/previousArrow2.png);
+  background: url(/imagenes/previousArrow2.svg) no-repeat 5% 50%, rgba(160,176,192,0.2);
+  background-color:#fbf0ff;
+}
+input[type="submit"].boton#siguienteGes, input[type="button"].boton#button_firmar{
+  padding-right:1.7em;
+  color:#8107c0;
+  background-position: right;
+  background-repeat: no-repeat;
+  background-image: url(/imagenes/nextArrow2.png);
+  background: url(/imagenes/nextArrow2.svg) no-repeat 95% 50%, rgba(160,176,192,0.2);
+  background-color:#fbf0ff;
+}
+input[type="submit"].boton#finGes{
+  background-color:#ffffb3; 
+  color:#123a63;
+}
+/***** dropdown *****/
+div.dropdown {position:relative; display:inline-block; margin:1em; text-align:left;}
+.centrador > div.dropdown {margin:0 1em;}
+div.dropdown > input[type="checkbox"] {position:absolute; display:none;}
+div.dropdown > label {
+  display:inline-block; padding:6px 2.5em 6px 15px; color:#333; line-height:1.5em; border:1px solid #eee;
+  background-color:#eee; cursor:pointer; -webkit-border-radius:3px; -moz-border-radius:3px; border-radius:3px;
+  box-sizing:border-box; color:#5f5f5f; min-width:17.5em;
+  box-shadow:0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  -moz-box-shadow:0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  -webkit-box-shadow:0 1px 1px 0 rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  background:#eee url('/imagenes/down-arrow_64x64.png') 97% center no-repeat;
+  transition:background-position 0.5s; background-size:1em 1em;
+}
+div.dropdown > label * {
+  width: calc(15em - 5px); text-overflow:ellipsis; overflow: hidden; white-space: nowrap;
+}
+div.dropdown label.selected {color:#123a63; background-color:#fff;}
+div.dropdown:hover > label {
+  border:1px solid #F29708; background-color:#fff; -webkit-border-radius:3px;
+  -moz-border-radius:3px; border-radius:3px;
+}
+div.dropdown > ul {
+  position:absolute; z-index:900; display:none; border:1px solid #eee; background:#fff;
+  padding:6px 0; margin:0; list-style:none; width:100%; -webkit-border-radius:0 0 3px 3px;
+  -moz-border-radius:0 0 3px 3px; border-radius:0 0 3px 3px; -webkit-box-shadow:0 3px 8px rgba(0, 0, 0, .15);
+  -moz-box-shadow:0 3px 8px rgba(0, 0, 0, .15); box-shadow:0 3px 8px rgba(0, 0, 0, .15); width:17.5em;
+  max-height:24em; overflow:auto;
+}
+div.dropdown >ul a {display:block; padding:6px 15px; text-decoration:none; color:#123a63;}
+div.dropdown>ul a:hover, .dropdown>ul a:focus {background:#ececec;}
+div.dropdown > input[type="checkbox"]:checked ~ ul {display:block;}
+div.dropdown > input[type="checkbox"]:checked + label {background-image:url('/imagenes/up-arrow_64x64.png');}
+
+form fieldset legend {padding:0 1em; text-align:left;}
+.tabla {display:table; margin:1em auto; min-width:90%;}
+fieldset .tabla {margin:0 auto;}
+.fila {display:table-row; line-height:2.5em;}
+.fila2 {display:block; margin-top:1em;}
+.celda {text-align:left; display:table-cell; padding:0.2em; vertical-align:middle;}
+.celda2 {text-align:left; display:table-cell; padding:0.2em; vertical-align:top;}
+form .celda:nth-child(odd) label {float: right;}
+.celda:first-child label {float:right;}
+.celda label {padding-right:1em;}
+.celda label.little {padding-right:0em;}
+
+form .celda2:nth-child(odd) label {float: right;}
+.celda2:first-child label {float:right;}
+.celda2 label {padding-right:1em;}
+.celda2 label.little {padding-right:0em;}
+
+.cajaCaptcha {text-align:center; margin:1em 0;}
+.cajaCaptcha p {line-height:2.5em;}
+
+#campo_obligatorio {font-size:95%;}
+
+/***** Movil!!! Para pantallas width width < 670px *****/
+@media (max-width:669px) {  /* formulario */
+  select, input, .boton {max-width:90vw;}
+  textarea{width: 85%}
+  fieldset fieldset select, fieldset fieldset input {max-width:80vw;}
+  .bloqueBotones .boton {margin: 0.5em; text-overflow: ellipsis; overflow: hidden;}
+  select {
+    white-space:nowrap; overflow:hidden; -o-text-overflow:ellipsis;
+    -ms-text-overflow:ellipsis; text-overflow: ellipsis;
+    display:inline-block; white-space:pre-wrap;
+  }
+  input, .boton {min-width:inherit;}
+  .fila {display: block; line-height:inherit;}
+  form fieldset {font-size:90%; padding:3px; max-width:95vw; margin:1em auto;}
+  form .tabla {width:unset;}
+  form .bloqueBotones {text-align:center;}
+  form .celda:first-child label {float:none;}
+  form .celda:first-child, #cont-tabs form .celda {display:block;}
+  form .celda2:first-child label {float:none;}
+  form .celda2:first-child, #cont-tabs form .celda2 {display:block;}
+  div.dropdown {margin:0 0.5em;}
+  div.dropdown > label {display:block; padding:6px 3em 6px 15px; width:calc(100vw - 2em); min-width:0;}
+  div.dropdown > label * {width: calc(100vw - 3.5em);}
+  div.dropdown > ul {width:calc(100vw - 1em);}
+}
+
+/***** Tablet!!! Para pantallas width 670px < width < 1050px *****/
+@media (min-width:670px) and (max-width:1050px) {
+  form fieldset {font-size:90%;text-align:left; max-width:95vw;}
+  form .tabla {margin:0 auto; width:inherit;}
+  form .fila {text-align:left; border:0;}
+  form .celda {min-width:0; width:auto; max-width:none;}
+  form .fila .celda:first-child {min-width:9em;}
+  form .celda2 {min-width:0; width:auto; max-width:none;}
+  form .fila .celda2:first-child {min-width:9em;}
+}

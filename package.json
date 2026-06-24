@@ -1,0 +1,33 @@
+{
+  "name": "subastas-boe-api",
+  "version": "0.1.0",
+  "description": "API REST + MCP Server para subastas del BOE. Zero-Disk para hardware limitado.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "pm2": "pm2 start src/index.js --name subastas-boe-api",
+    "pm2:stop": "pm2 stop subastas-boe-api",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "@fastify/swagger": "^9.0.0",
+    "@fastify/swagger-ui": "^5.0.0",
+    "cheerio": "^1.0.0",
+    "undici": "^6.0.0",
+    "quick-lru": "^7.0.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "pm2": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
