@@ -29,6 +29,25 @@ export async function buildServer() {
     routePrefix: '/docs',
   });
 
+  // Verificación del gateway de RapidAPI. RapidAPI inyecta una cabecera secreta
+  // (X-RapidAPI-Proxy-Secret) en cada petición que reenvía al backend. Sin esta
+  // comprobación, cualquiera que descubra la URL pública del túnel Cloudflare
+  // podría consumir la API directamente, saltándose la facturación de RapidAPI.
+  // Solo se exige en producción y si el secreto está configurado, para no
+  // entorpecer el desarrollo local ni los tests.
+  if (env.nodeEnv === 'production' && env.rapidApiProxySecret) {
+    app.addHook('onRequest', async (request, reply) => {
+      // /health queda exento para que los monitores de uptime (UptimeRobot)
+      // puedan comprobar el servicio sin la cabecera.
+      if (request.url === '/health' || request.url.startsWith('/health?')) return;
+
+      const provided = request.headers['x-rapidapi-proxy-secret'];
+      if (provided !== env.rapidApiProxySecret) {
+        reply.code(401).send({ error: 'No autorizado', code: 'MISSING_PROXY_SECRET' });
+      }
+    });
+  }
+
   app.setErrorHandler(errorHandler);
 
   await app.register(healthRoutes, { prefix: '/health' });

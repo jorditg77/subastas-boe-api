@@ -1,9 +1,20 @@
 import { load } from 'cheerio';
 import { BOE_SEARCH_URL, BOE_DETAIL_URL, BOE_STATUS, BOE_BIEN_TIPO } from '../config/constants.js';
 import { postForm, sleep } from './utils/html.js';
+import { boeLimit } from './utils/limit.js';
 import { redactAuctionPii } from './utils/pii.js';
 import { env } from '../config/index.js';
 import { logger } from '../api/middleware/logger.js';
+
+// Decodifica el idSub del href de forma segura: un % mal formado en el HTML
+// del BOE no debe tumbar el parseo de todos los resultados.
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 const STATUS_MAP = {
   proxima: BOE_STATUS.PROXIMA_APERTURA,
@@ -102,7 +113,7 @@ export function parseSearchResults(html) {
 
     const detailHref = $el.find('a.resultado-busqueda-link-defecto').attr('href') || '';
     const idSubMatch = detailHref.match(/idSub=([^&]+)/);
-    const id = idSubMatch ? decodeURIComponent(idSubMatch[1]) : idMatch[1];
+    const id = idSubMatch ? safeDecode(idSubMatch[1]) : idMatch[1];
 
     results.push({
       id,
@@ -127,7 +138,9 @@ export async function searchAuctions(query) {
   const fields = buildSearchFields(query);
   logger.info({ province: query.province, status: query.status, type: query.type }, 'Searching auctions');
 
-  const html = await postForm(BOE_SEARCH_URL, fields);
+  // A través del limitador global compartido con el detalle: nunca más de
+  // BOE_MAX_CONCURRENT_REQUESTS peticiones simultáneas al portal en total.
+  const html = await boeLimit(() => postForm(BOE_SEARCH_URL, fields));
   const { results, total } = parseSearchResults(html);
 
   await sleep(env.boe.requestDelayMs);

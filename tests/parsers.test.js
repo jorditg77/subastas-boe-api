@@ -11,14 +11,24 @@ test('calculateAuctionMetrics', () => {
 });
 
 test('parseCurrency', () => {
-  assert.strictEqual(parseCurrency('305.348,00 EUR'), 305348.00);
+  assert.strictEqual(parseCurrency('305.348,00 EUR'), 305348.0);
   assert.strictEqual(parseCurrency('1.234,56'), 1234.56);
   assert.strictEqual(parseCurrency('sin valor'), null);
 });
 
-test('redactPii removes NIF', () => {
-  const text = 'El deudor Juan Pérez con NIF 12345678Z participa en la subasta.';
-  const redacted = redactPii(text);
-  assert.ok(!redacted.includes('12345678Z'));
-  assert.ok(redacted.includes('[NIF REDACTED]'));
+test('redactPii redacta DNI y NIE', () => {
+  assert.ok(redactPii('El deudor con NIF 12345678Z participa').includes('[DNI REDACTED]'));
+  assert.ok(!redactPii('NIF 12345678Z').includes('12345678Z'));
+  assert.ok(redactPii('extranjero X1234567L').includes('[NIE REDACTED]'));
+  assert.ok(redactPii('cuenta ES9121000418450200051332').includes('[IBAN REDACTED]'));
+});
+
+test('redactPii NO destruye direcciones, topónimos ni marcas (regresión)', () => {
+  // El fallo original redactaba cualquier secuencia en mayúsculas que
+  // contuviera un nombre de pila común, arruinando datos de altísimo valor.
+  assert.strictEqual(redactPii('CALLE DEL CARMEN 14'), 'CALLE DEL CARMEN 14');
+  assert.strictEqual(redactPii('AVENIDA SAN JOSE 23'), 'AVENIDA SAN JOSE 23');
+  assert.strictEqual(redactPii('PLAZA DEL PILAR'), 'PLAZA DEL PILAR');
+  assert.strictEqual(redactPii('MERCEDES BENZ CLASE A'), 'MERCEDES BENZ CLASE A');
+  assert.ok(!redactPii('CALLE DEL CARMEN 14').includes('REDACTED'));
 });

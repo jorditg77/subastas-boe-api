@@ -1,20 +1,17 @@
 import { load } from 'cheerio';
-import pLimit from 'p-limit';
 import { BOE_DETAIL_URL, BOE_TABS } from '../config/constants.js';
 import { fetchHtml } from './utils/html.js';
+import { boeLimit } from './utils/limit.js';
 import { parseKeyValueTable, extractIsoDate } from './utils/parse.js';
 import { redactAuctionPii } from './utils/pii.js';
 import { calculateAuctionMetrics, parseCurrency } from './utils/calculations.js';
-import { env } from '../config/index.js';
 import { logger } from '../api/middleware/logger.js';
-
-const limit = pLimit(env.boe.maxConcurrentRequests);
 
 function buildTabUrl(id, ver) {
   return `${BOE_DETAIL_URL}?idSub=${encodeURIComponent(id)}&ver=${ver}`;
 }
 
-function parseGeneralTab(html) {
+export function parseGeneralTab(html) {
   const $ = load(html);
   const fields = parseKeyValueTable($, '#idBloqueDatos1 > table');
 
@@ -24,6 +21,11 @@ function parseGeneralTab(html) {
   // usable, los umbrales legales se calculan sobre el valor de subasta.
   const appraisalValue = appraisalValueRaw && appraisalValueRaw > 0 ? appraisalValueRaw : null;
   const metricsBase = appraisalValue ?? auctionValue;
+  // Transparencia: el porcentaje legal de adjudicación (50%/70%) se calcula en
+  // rigor sobre el valor de tasación. Cuando el BOE no lo publica, se cae al
+  // valor de subasta y se marca aquí para que el consumidor sepa la base usada
+  // y no tome el cálculo como definitivo (ver disclaimer legal).
+  const metricsBasedOn = appraisalValue ? 'tasacion' : auctionValue ? 'valorSubasta' : null;
 
   const documents = [];
   $('#idBloqueDatos1 .caja.gris ul.enlaces li a').each((_, a) => {
@@ -46,12 +48,13 @@ function parseGeneralTab(html) {
     minimumBid: /sin puja m[ií]nima/i.test(fields['Puja mínima'] || '') ? null : parseCurrency(fields['Puja mínima']),
     bidIncrement: parseCurrency(fields['Tramos entre pujas']),
     publishedDeposit: parseCurrency(fields['Importe del depósito']),
+    metricsBasedOn,
     ...calculateAuctionMetrics(metricsBase || 0),
     documents,
   };
 }
 
-function parseAuthorityTab(html) {
+export function parseAuthorityTab(html) {
   const $ = load(html);
   const fields = parseKeyValueTable($, '#idBloqueDatos2 > table');
 
@@ -143,7 +146,7 @@ function parseLotBlock($, loteEl) {
   };
 }
 
-function parseAssetsTab(html) {
+export function parseAssetsTab(html) {
   const $ = load(html);
   const lots = [];
   $('#idBloqueDatos3 .bloque[id^="idBloqueLote"]').each((_, loteEl) => {
@@ -155,7 +158,7 @@ function parseAssetsTab(html) {
 const NO_BIDS_PATTERNS = [/no ha recibido pujas/i, /^Sin puja$/i];
 const SECRET_BID_PATTERN = /puja m[aá]xima.*es secreta/i;
 
-function parseBidsTab(html) {
+export function parseBidsTab(html) {
   const $ = load(html);
   const block = $('#idBloqueDatos8');
   const blockText = block.text();
@@ -207,7 +210,7 @@ export async function getAuctionDetail(id) {
   const htmls = {};
   await Promise.all(
     Object.entries(tabs).map(([key, ver]) =>
-      limit(async () => {
+      boeLimit(async () => {
         try {
           htmls[key] = await fetchHtml(buildTabUrl(id, ver));
         } catch (err) {
@@ -218,6 +221,13 @@ export async function getAuctionDetail(id) {
     )
   );
 
+  // Si fallan TODAS las pestañas (BOE caído, IP bloqueada, id inexistente),
+  // propagamos el error para que la ruta devuelva 5xx y NO se cachee una
+  // subasta vacía durante horas (envenenamiento de caché ante fallo transitorio).
+  if (!htmls.general && !htmls.autoridad && !htmls.bienes && !htmls.pujas) {
+    throw new Error(`No se pudo obtener ninguna pestaña de la subasta ${id}`);
+  }
+
   let lots = htmls.bienes ? parseAssetsTab(htmls.bienes) : [];
 
   if (htmls.bienes) {
@@ -227,7 +237,7 @@ export async function getAuctionDetail(id) {
     if (missingLoteIds.length) {
       const extraLots = await Promise.all(
         missingLoteIds.map((loteId) =>
-          limit(async () => {
+          boeLimit(async () => {
             try {
               const html = await fetchHtml(`${buildTabUrl(id, BOE_TABS.BIENES)}&idLote=${encodeURIComponent(loteId)}`);
               return parseAssetsTab(html)[0] ?? null;
