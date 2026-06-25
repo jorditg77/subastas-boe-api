@@ -11,6 +11,10 @@ export const env = {
     auctionTtlSeconds: parseInt(process.env.CACHE_AUCTION_TTL_SECONDS || '14400', 10),
     searchTtlSeconds: parseInt(process.env.CACHE_SEARCH_TTL_SECONDS || '7200', 10),
     provincesTtlSeconds: parseInt(process.env.CACHE_PROVINCES_TTL_SECONDS || '86400', 10),
+    // Válvula de emergencia a nivel de proceso, independiente del límite de
+    // la caché: si el heap crece por cualquier motivo (no solo la caché) por
+    // encima de esto, se vacía la caché para liberar memoria.
+    memoryPressureThresholdMB: parseInt(process.env.CACHE_MEMORY_PRESSURE_THRESHOLD_MB || '2500', 10),
   },
   boe: {
     maxConcurrentRequests: parseInt(process.env.BOE_MAX_CONCURRENT_REQUESTS || '3', 10),

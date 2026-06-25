@@ -4,11 +4,15 @@ import { fetchHtml } from './utils/html.js';
 import { boeLimit } from './utils/limit.js';
 import { parseKeyValueTable, extractIsoDate } from './utils/parse.js';
 import { redactAuctionPii } from './utils/pii.js';
-import { calculateAuctionMetrics, parseCurrency } from './utils/calculations.js';
+import { calculateAuctionMetrics, parseCurrency, determineApplicableThreshold } from './utils/calculations.js';
 import { logger } from '../api/middleware/logger.js';
 
 function buildTabUrl(id, ver) {
   return `${BOE_DETAIL_URL}?idSub=${encodeURIComponent(id)}&ver=${ver}`;
+}
+
+function lotHasViviendaHabitual(lot) {
+  return lot.assets.some((a) => /^s[ií]$/i.test(a.raw?.['Vivienda habitual'] || ''));
 }
 
 export function parseGeneralTab(html) {
@@ -252,9 +256,32 @@ export async function getAuctionDetail(id) {
     }
   }
 
+  const general = htmls.general ? parseGeneralTab(htmls.general) : null;
+  const isJudicial = /JUDICIAL/i.test(general?.auctionType || '');
+
+  // El umbral del 50%/70% solo es determinable para subastas JUDICIALES y
+  // solo a nivel donde existan métricas calculadas: si la subasta tiene un
+  // único "lote" implícito, eso es el nivel `general`; si es multi-lote, cada
+  // lote tiene su propio valor económico y por tanto su propio umbral.
+  if (general && general.reference50 !== null) {
+    general.applicableThreshold = determineApplicableThreshold(general, {
+      isJudicial,
+      isViviendaHabitual: lots.length > 0 ? lots.some(lotHasViviendaHabitual) : null,
+    });
+  }
+
+  for (const lot of lots) {
+    if (lot.reference50 !== undefined) {
+      lot.applicableThreshold = determineApplicableThreshold(lot, {
+        isJudicial,
+        isViviendaHabitual: lotHasViviendaHabitual(lot),
+      });
+    }
+  }
+
   const auction = {
     id,
-    general: htmls.general ? parseGeneralTab(htmls.general) : null,
+    general,
     authority: htmls.autoridad ? parseAuthorityTab(htmls.autoridad) : null,
     lots,
     bids: htmls.pujas ? parseBidsTab(htmls.pujas) : null,

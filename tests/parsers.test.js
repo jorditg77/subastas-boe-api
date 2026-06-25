@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { calculateAuctionMetrics, parseCurrency } from '../src/scrapers/utils/calculations.js';
+import { calculateAuctionMetrics, parseCurrency, determineApplicableThreshold } from '../src/scrapers/utils/calculations.js';
 import { redactPii } from '../src/scrapers/utils/pii.js';
 
 test('calculateAuctionMetrics', () => {
@@ -8,6 +8,33 @@ test('calculateAuctionMetrics', () => {
   assert.strictEqual(result.reference70, 70000);
   assert.strictEqual(result.reference50, 50000);
   assert.strictEqual(result.deposit, 5000);
+});
+
+test('determineApplicableThreshold: judicial + vivienda habitual => 70%', () => {
+  const metrics = { reference50: 50000, reference70: 70000 };
+  const result = determineApplicableThreshold(metrics, { isJudicial: true, isViviendaHabitual: true });
+  assert.strictEqual(result.value, 70000);
+  assert.strictEqual(result.basis, 'reference70');
+});
+
+test('determineApplicableThreshold: judicial + NO vivienda habitual => 50%', () => {
+  const metrics = { reference50: 50000, reference70: 70000 };
+  const result = determineApplicableThreshold(metrics, { isJudicial: true, isViviendaHabitual: false });
+  assert.strictEqual(result.value, 50000);
+  assert.strictEqual(result.basis, 'reference50');
+});
+
+test('determineApplicableThreshold: no judicial => no determinado (no se afirma sin certeza)', () => {
+  const metrics = { reference50: 50000, reference70: 70000 };
+  const result = determineApplicableThreshold(metrics, { isJudicial: false, isViviendaHabitual: true });
+  assert.strictEqual(result.value, null);
+  assert.strictEqual(result.basis, null);
+});
+
+test('determineApplicableThreshold: judicial pero sin dato de vivienda habitual => no determinado', () => {
+  const metrics = { reference50: 50000, reference70: 70000 };
+  const result = determineApplicableThreshold(metrics, { isJudicial: true, isViviendaHabitual: null });
+  assert.strictEqual(result.value, null);
 });
 
 test('parseCurrency', () => {

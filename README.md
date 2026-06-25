@@ -126,6 +126,7 @@ Estructura de respuesta real de `/auctions/:id` (ejemplo, contra una subasta rea
     "reference70": 186900,
     "reference50": 133500,
     "deposit": 13350,
+    "applicableThreshold": { "value": 186900, "basis": "reference70", "note": "Vivienda habitual del deudor: umbral del 70% (art. 671 LEC)." },
     "documents": []
   },
   "authority": {
@@ -149,7 +150,9 @@ Estructura de respuesta real de `/auctions/:id` (ejemplo, contra una subasta rea
 }
 ```
 
-`metricsBasedOn` indica si los umbrales del 50%/70% se calcularon sobre la tasación oficial o, en su defecto, sobre el valor de subasta (el BOE no siempre publica la tasación). En subastas multi-lote, cada elemento de `lots[]` lleva sus propios `auctionValue`/`appraisalValue`/`reference70`/`reference50`/`deposit`, porque el valor económico es por lote y no a nivel de subasta.
+`metricsBasedOn` indica si los umbrales del 50%/70% se calcularon sobre la tasación oficial o, en su defecto, sobre el valor de subasta (el BOE no siempre publica la tasación). En subastas multi-lote, cada elemento de `lots[]` lleva sus propios `auctionValue`/`appraisalValue`/`reference70`/`reference50`/`deposit`/`applicableThreshold`, porque el valor económico es por lote y no a nivel de subasta.
+
+`applicableThreshold` indica cuál de los dos umbrales (50% o 70%) es el legalmente relevante para una adjudicación sin postores (art. 671 LEC), según si el bien es la vivienda habitual del deudor (dato que el propio BOE publica por bien). Solo se determina para subastas **judiciales**; para AEAT, notariales y administrativas generales devuelve `value: null` con una nota explicando por qué, en vez de afirmar algo sin la certeza legal necesaria. Esto es orientativo, no asesoramiento legal — verificar siempre con un profesional antes de invertir.
 
 ## Servidor MCP
 
