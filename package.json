@@ -10,7 +10,8 @@
     "mcp": "node src/mcp/server.js",
     "pm2": "pm2 start src/index.js --name subastas-boe-api",
     "pm2:stop": "pm2 stop subastas-boe-api",
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --test tests/**/*.test.js",
+    "loadtest:health": "autocannon -c 50 -d 10 http://localhost:3000/health"
   },
   "dependencies": {
     "@fastify/swagger": "^9.0.0",
@@ -27,6 +28,7 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "autocannon": "^8.0.0",
     "pm2": "^5.4.0"
   },
   "engines": {
