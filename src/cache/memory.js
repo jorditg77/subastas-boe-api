@@ -51,5 +51,7 @@ export const memoryCache = {
   },
 };
 
-// Chequeo periódico de presión de memoria
-setInterval(() => memoryCache.checkMemoryPressure(), 30000);
+// Chequeo periódico de presión de memoria. unref() para que este temporizador
+// de fondo no impida la salida limpia del proceso (tests, scripts puntuales,
+// señales de apagado): no representa trabajo pendiente real del programa.
+setInterval(() => memoryCache.checkMemoryPressure(), 30000).unref();

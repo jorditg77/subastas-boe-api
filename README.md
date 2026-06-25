@@ -50,24 +50,26 @@ Este repositorio se está desarrollando de forma incremental y pública. Estado 
 
 **Hecho**
 - [x] Servidor Fastify con OpenAPI/Swagger, rutas (`/health`, `/provinces`, `/auctions`) y caché en memoria conectada.
-- [x] Cliente HTTP con reintentos y backoff exponencial hacia el BOE.
-- [x] Cálculos legales automáticos (umbrales del 50%/70% del valor de tasación, depósito del 5%) y redacción de PII (NIF/DNI/NIE) para cumplir RGPD, con tests unitarios.
-- [x] Fixtures HTML reales del portal descargados para el desarrollo del parser.
+- [x] Parseo real del HTML del BOE (búsqueda por POST y detalle multi-pestaña, incluidas subastas multi-lote), verificado en vivo contra `subastas.boe.es`.
+- [x] Cálculos legales automáticos (umbrales del 50%/70%, depósito del 5%, con transparencia sobre si se basan en la tasación o en el valor de subasta) y redacción de PII (DNI/NIE/IBAN) para cumplir RGPD.
+- [x] Servidor MCP (`src/mcp/`) con 4 *tools*, verificado con un cliente MCP real por stdio.
+- [x] 21 tests automatizados (utilidades, parsers contra fixtures reales y servidor MCP).
+- [x] Verificación del gateway de RapidAPI (cabecera de proxy) en producción.
 - [x] Control de versiones, licencia y documentación legal básica.
 
 **En progreso (ver desglose completo en la sección Roadmap)**
-- [ ] Parseo real del HTML del BOE en `search.js` y `detail.js` (hoy son placeholders).
-- [ ] Servidor MCP (`src/mcp/`).
-- [ ] Despliegue en producción y publicación en RapidAPI.
+- [ ] Pruebas de memoria/concurrencia en el hardware real de producción.
+- [ ] Despliegue en producción (Cloudflare Tunnel + PM2) y CI/CD básico.
+- [ ] Publicación en RapidAPI.
 
 ## Características principales (objetivo de diseño)
 
 - **Zero-Disk:** todo el scraping, parseo y caché ocurre en RAM.
 - **Sin navegadores headless:** parseo eficiente con Cheerio.
-- **Multi-tab:** consolida General, Autoridad, Bienes y Pujas en un solo objeto JSON.
-- **MCP-ready:** pensada para exponerse como servidor MCP a agentes de IA.
+- **Multi-tab:** consolida General, Autoridad, Bienes (incluidos lotes múltiples) y Pujas en un solo objeto JSON.
+- **MCP:** servidor MCP propio (`npm run mcp`) para que agentes de IA consulten subastas directamente.
 - **Cálculos legales automáticos:** umbrales del 50% y 70%, depósito del 5%.
-- **Filtrado de PII:** elimina datos personales para cumplir RGPD.
+- **Filtrado de PII:** elimina identificadores personales (DNI/NIE/IBAN) para cumplir RGPD.
 
 ## Stack técnico
 
@@ -104,32 +106,78 @@ La documentación interactiva (Swagger UI) está disponible en `/docs` una vez e
 curl "http://localhost:3000/auctions?province=28&type=inmuebles&status=celebrandose"
 ```
 
-Estructura de respuesta de `/auctions/:id` (esquema; los valores se completan con datos reales del BOE conforme avanza el parser — ver Roadmap):
+Estructura de respuesta real de `/auctions/:id` (ejemplo, contra una subasta real con un único lote):
 
 ```json
 {
-  "id": "SUB-AT-2026-26R0886001165",
-  "type": "JUDICIAL EN VÍA DE APREMIO",
-  "status": "Celebrandose",
+  "id": "SUB-JA-2026-260225",
   "general": {
-    "description": "string",
-    "auctionValue": 0,
-    "appraisalValue": 0,
-    "reference70": 0,
-    "reference50": 0,
-    "deposit": 0
+    "auctionType": "JUDICIAL EN VÍA DE APREMIO",
+    "caseAccount": "0730 0000 06 0398 21",
+    "startDate": "2026-06-05T18:00:00+02:00",
+    "endDate": "2026-06-25T18:00:00+02:00",
+    "claimedAmount": 167000.86,
+    "auctionValue": 167000.86,
+    "appraisalValue": 267000,
+    "minimumBid": null,
+    "bidIncrement": 3340.01,
+    "publishedDeposit": 8350.04,
+    "metricsBasedOn": "tasacion",
+    "reference70": 186900,
+    "reference50": 133500,
+    "deposit": 13350,
+    "documents": []
   },
-  "authority": { "name": null, "code": null, "address": null, "phone": null, "email": null },
-  "assets": [],
-  "bids": { "currentMaxBid": null, "totalBids": null, "requiresDeposit": true },
-  "documents": [],
-  "metadata": { "sourceUrl": "string", "scrapedAt": "ISO-8601", "cached": false }
+  "authority": {
+    "code": "0809642002",
+    "name": "Sección Civil TI Granollers. Plz.n 2",
+    "address": "CL JOSEP UMBERT 124 7 ; 08400 GRANOLLERS",
+    "phone": "936934580",
+    "email": "sce.granollers@xij.gencat.cat"
+  },
+  "lots": [
+    {
+      "idLote": "1",
+      "description": "FINCA SITA EN GRANOLLERS ( BARCELONA )",
+      "assets": [
+        { "label": "Bien 1 - Inmueble (Vivienda)", "address": "...", "locality": "GRANOLLERS", "province": "Barcelona" }
+      ]
+    }
+  ],
+  "bids": { "currentMaxBid": null, "secret": false, "totalBids": 0, "requiresDeposit": true, "perLot": [] },
+  "metadata": { "sourceUrl": "...", "scrapedAt": "ISO-8601", "cached": false }
 }
 ```
 
+`metricsBasedOn` indica si los umbrales del 50%/70% se calcularon sobre la tasación oficial o, en su defecto, sobre el valor de subasta (el BOE no siempre publica la tasación). En subastas multi-lote, cada elemento de `lots[]` lleva sus propios `auctionValue`/`appraisalValue`/`reference70`/`reference50`/`deposit`, porque el valor económico es por lote y no a nivel de subasta.
+
 ## Servidor MCP
 
-Planificado en el roadmap (ver más abajo). Expondrá como *tools* MCP la búsqueda de subastas, el detalle consolidado y el cálculo de umbrales legales, reutilizando la misma capa de caché que la API REST, para que agentes como Claude o Cursor puedan consultar subastas del BOE directamente desde su contexto.
+```bash
+npm run mcp
+```
+
+Expone 4 *tools* por transporte stdio, reutilizando la misma capa de caché en RAM que la API REST (`src/services/auctionsService.js`):
+
+| Tool | Descripción |
+|------|-------------|
+| `search_auctions` | Busca subastas (provincia, estado, tipo de bien, paginación). |
+| `get_auction_detail` | Detalle consolidado de una subasta por su id. |
+| `calculate_auction_metrics` | Calcula umbrales 50%/70% y depósito a partir de un importe. |
+| `list_provinces` | Lista las 52 provincias y su código. |
+
+Configuración para Claude Desktop / Cursor (`claude_desktop_config.json` o equivalente):
+
+```json
+{
+  "mcpServers": {
+    "subastas-boe": {
+      "command": "node",
+      "args": ["/ruta/absoluta/a/subastas-boe-api/src/mcp/server.js"]
+    }
+  }
+}
+```
 
 ## Exposición con Cloudflare Tunnel
 
@@ -146,18 +194,26 @@ src/
 ├── api/
 │   ├── middleware/   # logger (pino), errorHandler
 │   ├── routes/       # health, provinces, auctions
-│   └── server.js     # bootstrap de Fastify + Swagger
+│   └── server.js     # bootstrap de Fastify + Swagger + verificación del proxy de RapidAPI
 ├── cache/
 │   └── memory.js     # caché LRU en RAM con TTL y memory-pressure guard
 ├── config/           # env vars, constantes del BOE, planes de precio
+├── mcp/
+│   ├── server.js     # bootstrap del servidor MCP (fuerza logs a stderr antes de cargar nada más)
+│   ├── runtime.js     # construcción de McpServer + transporte stdio
+│   └── tools.js       # las 4 tools expuestas a agentes de IA
+├── services/
+│   └── auctionsService.js  # caché compartida entre la API REST y el MCP
 ├── scrapers/
-│   ├── search.js     # búsqueda de subastas
-│   ├── detail.js     # detalle consolidado (4 pestañas)
-│   └── utils/        # fetch con reintentos, cálculos legales, redacción PII
-└── index.js           # entry point
+│   ├── search.js     # búsqueda real (POST a subastas_ava.php)
+│   ├── detail.js     # detalle consolidado real (ver=1/2/3/5, multi-lote)
+│   └── utils/        # fetch con reintentos, límite de concurrencia, cálculos legales, redacción PII
+└── index.js           # entry point de la API REST
 tests/
 ├── fixtures/          # HTML real descargado de subastas.boe.es
-└── parsers.test.js
+├── parsers.test.js     # utilidades puras
+├── scrapers.test.js     # parsers contra los fixtures reales
+└── mcp.test.js          # registro y esquemas de las tools del MCP
 ```
 
 ## Roadmap
@@ -165,11 +221,11 @@ tests/
 Proyecto dividido en dos bloques: completar el producto técnico y, después, marketing/SEO/adquisición de clientes para la monetización vía RapidAPI.
 
 **Bloque 1 — Producto técnico**
-1. Mapeo de selectores reales sobre los fixtures HTML descargados.
-2. Parseo real en `search.js` y `detail.js` + límite de concurrencia hacia el BOE.
-3. Tests de parseo contra los fixtures reales.
-4. Servidor MCP en `src/mcp/`.
-5. Pruebas de memoria/concurrencia en el hardware real y hardening de errores.
+1. ~~Mapeo de selectores reales sobre los fixtures HTML descargados.~~ ✅
+2. ~~Parseo real en `search.js` y `detail.js` + límite de concurrencia hacia el BOE.~~ ✅
+3. ~~Tests de parseo contra los fixtures reales.~~ ✅
+4. ~~Servidor MCP en `src/mcp/`.~~ ✅
+5. Pruebas de memoria/concurrencia en el hardware real (HP Pavilion 15 / Debian 13) y hardening de errores.
 6. Despliegue en producción (Cloudflare Tunnel + PM2) y CI/CD básico.
 
 **Bloque 2 — Monetización**

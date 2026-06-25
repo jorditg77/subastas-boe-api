@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import { memoryCache } from '../../cache/memory.js';
-import { env } from '../../config/index.js';
-import { searchAuctions } from '../../scrapers/search.js';
-import { getAuctionDetail } from '../../scrapers/detail.js';
+import { searchAuctionsCached, getAuctionDetailCached } from '../../services/auctionsService.js';
 
 const searchQuerySchema = z.object({
   province: z.string().regex(/^\d{2}$/, 'province debe ser el código numérico de 2 dígitos').optional(),
@@ -22,35 +19,13 @@ const idParamSchema = z.object({
 });
 
 export async function auctionsRoutes(app) {
-  app.get('/', async (request, reply) => {
+  app.get('/', async (request) => {
     const query = searchQuerySchema.parse(request.query);
-    const cacheKey = `search:${JSON.stringify(query)}`;
-
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      cached.metadata.cached = true;
-      return cached;
-    }
-
-    const result = await searchAuctions(query);
-    result.metadata.cached = false;
-    memoryCache.set(cacheKey, result, env.cache.searchTtlSeconds);
-    return result;
+    return searchAuctionsCached(query);
   });
 
-  app.get('/:id', async (request, reply) => {
+  app.get('/:id', async (request) => {
     const { id } = idParamSchema.parse(request.params);
-    const cacheKey = `auction:${id}`;
-
-    const cached = memoryCache.get(cacheKey);
-    if (cached) {
-      cached.metadata.cached = true;
-      return cached;
-    }
-
-    const result = await getAuctionDetail(id);
-    result.metadata.cached = false;
-    memoryCache.set(cacheKey, result, env.cache.auctionTtlSeconds);
-    return result;
+    return getAuctionDetailCached(id);
   });
 }
