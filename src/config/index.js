@@ -21,6 +21,10 @@ export const env = {
     requestDelayMs: parseInt(process.env.BOE_REQUEST_DELAY_MS || '1000', 10),
     retryAttempts: parseInt(process.env.BOE_RETRY_ATTEMPTS || '3', 10),
     retryBackoffMs: parseInt(process.env.BOE_RETRY_BACKOFF_MS || '2000', 10),
+    // Timeout por petición al BOE: evita que una conexión colgada retenga un
+    // slot del limitador (y deje en espera a todos los clientes que comparten
+    // esa misma petición vía single-flight) de forma indefinida.
+    requestTimeoutMs: parseInt(process.env.BOE_REQUEST_TIMEOUT_MS || '20000', 10),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
 };

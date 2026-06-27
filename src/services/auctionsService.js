@@ -30,17 +30,36 @@ async function withSingleFlight(cacheKey, fetcher) {
   }
 }
 
+// Clave de caché normalizada SOLO por los filtros que afectan a la consulta
+// real al BOE (provincia, estado, tipo). page/limit NO entran: paginamos en
+// memoria sobre el conjunto completo ya cacheado. Así una misma búsqueda
+// pedida con paginaciones distintas —o desde REST y desde MCP— comparte una
+// única petición al portal.
+function searchCacheKey({ province, status, type }) {
+  return `search:${type || 'todos'}|${province || ''}|${status || ''}`;
+}
+
+export function paginate(fullResult, page = 1, limit = 50) {
+  const start = (page - 1) * limit;
+  return {
+    data: fullResult.results.slice(start, start + limit),
+    pagination: { page, limit, total: fullResult.total },
+    metadata: { ...fullResult.metadata, cached: fullResult.metadata.cached ?? false },
+  };
+}
+
 // Capa compartida entre la API REST y el servidor MCP: ambas pasan por la
 // misma caché en RAM, así un agente de IA y un cliente REST consultando la
 // misma subasta no duplican carga sobre el BOE.
 export async function searchAuctionsCached(query) {
-  const cacheKey = `search:${JSON.stringify(query)}`;
-  return withSingleFlight(cacheKey, async () => {
+  const cacheKey = searchCacheKey(query);
+  const full = await withSingleFlight(cacheKey, async () => {
     const result = await searchAuctions(query);
     result.metadata.cached = false;
     memoryCache.set(cacheKey, result, env.cache.searchTtlSeconds);
     return result;
   });
+  return paginate(full, query.page, query.limit);
 }
 
 export async function getAuctionDetailCached(id) {
@@ -53,4 +72,4 @@ export async function getAuctionDetailCached(id) {
   });
 }
 
-export const __testing__ = { withSingleFlight, inFlight };
+export const __testing__ = { withSingleFlight, inFlight, searchCacheKey };

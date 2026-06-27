@@ -97,4 +97,5 @@ export const PROVINCES = [
   { code: '52', name: 'Melilla' },
 ];
 
-export const USER_AGENT = 'Mozilla/5.0 (compatible; SubastasBoeBot/0.1; +mailto:info@example.com)';
+export const USER_AGENT =
+  'Mozilla/5.0 (compatible; SubastasBoeBot/0.1; +https://github.com/jorditg77/subastas-boe-api)';

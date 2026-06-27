@@ -97,7 +97,7 @@ npm run dev
 |--------|--------------------|-----------------------------------------------|
 | GET    | `/health`          | Estado del servicio.                          |
 | GET    | `/provinces`        | Listado de las 52 provincias españolas con su código BOE. |
-| GET    | `/auctions`         | Búsqueda de subastas (filtros: provincia, estado, tipo de bien, rango de valor, paginación). |
+| GET    | `/auctions`         | Búsqueda de subastas (filtros: provincia, estado, tipo de bien, paginación). |
 | GET    | `/auctions/:id`     | Detalle consolidado de una subasta (General + Autoridad + Bienes + Pujas). |
 
 La documentación interactiva (Swagger UI) está disponible en `/docs` una vez el servidor está corriendo.

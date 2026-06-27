@@ -1,9 +1,8 @@
 import { load } from 'cheerio';
 import { BOE_SEARCH_URL, BOE_DETAIL_URL, BOE_STATUS, BOE_BIEN_TIPO } from '../config/constants.js';
-import { postForm, sleep } from './utils/html.js';
+import { postForm } from './utils/html.js';
 import { boeLimit } from './utils/limit.js';
 import { redactAuctionPii } from './utils/pii.js';
-import { env } from '../config/index.js';
 import { logger } from '../api/middleware/logger.js';
 
 // Decodifica el idSub del href de forma segura: un % mal formado en el HTML
@@ -134,25 +133,22 @@ export function parseSearchResults(html) {
   return { results, total };
 }
 
-export async function searchAuctions(query) {
-  const fields = buildSearchFields(query);
-  logger.info({ province: query.province, status: query.status, type: query.type }, 'Searching auctions');
+// Devuelve el CONJUNTO COMPLETO de resultados para unos filtros dados (sin
+// paginar). La paginación se aplica después, en la capa de servicio, sobre el
+// resultado cacheado: así page/limit no fragmentan la caché ni multiplican las
+// peticiones al BOE (antes cada página disparaba una búsqueda completa nueva).
+export async function searchAuctions(filters) {
+  const fields = buildSearchFields(filters);
+  logger.info({ province: filters.province, status: filters.status, type: filters.type }, 'Searching auctions');
 
   // A través del limitador global compartido con el detalle: nunca más de
   // BOE_MAX_CONCURRENT_REQUESTS peticiones simultáneas al portal en total.
   const html = await boeLimit(() => postForm(BOE_SEARCH_URL, fields));
   const { results, total } = parseSearchResults(html);
 
-  await sleep(env.boe.requestDelayMs);
-
-  const page = query.page || 1;
-  const limit = query.limit || 50;
-  const start = (page - 1) * limit;
-  const paged = results.slice(start, start + limit);
-
   return {
-    data: paged.map(redactAuctionPii),
-    pagination: { page, limit, total },
+    results: results.map(redactAuctionPii),
+    total,
     metadata: {
       source: BOE_SEARCH_URL,
       scrapedAt: new Date().toISOString(),

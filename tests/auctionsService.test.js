@@ -1,8 +1,43 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { __testing__ } from '../src/services/auctionsService.js';
+import { paginate, __testing__ } from '../src/services/auctionsService.js';
 
-const { withSingleFlight } = __testing__;
+const { withSingleFlight, searchCacheKey } = __testing__;
+
+test('searchCacheKey: ignora page/limit y normaliza filtros (regresión de fragmentación de caché)', () => {
+  // La misma búsqueda con paginaciones distintas debe compartir clave.
+  const k1 = searchCacheKey({ province: '08', status: 'celebrandose', type: 'inmuebles', page: 1, limit: 50 });
+  const k2 = searchCacheKey({ province: '08', status: 'celebrandose', type: 'inmuebles', page: 5, limit: 10 });
+  assert.strictEqual(k1, k2);
+
+  // type ausente (MCP) y type 'todos' (REST) deben colapsar a la misma clave,
+  // para que REST y MCP compartan la caché.
+  assert.strictEqual(searchCacheKey({ province: '28' }), searchCacheKey({ province: '28', type: 'todos' }));
+
+  // Filtros distintos => claves distintas.
+  assert.notStrictEqual(searchCacheKey({ province: '08' }), searchCacheKey({ province: '28' }));
+});
+
+test('paginate: corta el conjunto completo y conserva el total real', () => {
+  const full = {
+    results: Array.from({ length: 85 }, (_, i) => ({ id: `r${i}` })),
+    total: 85,
+    metadata: { source: 'x', cached: true },
+  };
+
+  const p1 = paginate(full, 1, 50);
+  assert.strictEqual(p1.data.length, 50);
+  assert.strictEqual(p1.data[0].id, 'r0');
+  assert.strictEqual(p1.pagination.total, 85, 'el total refleja TODOS los resultados, no solo la página');
+  assert.strictEqual(p1.metadata.cached, true);
+
+  const p2 = paginate(full, 2, 50);
+  assert.strictEqual(p2.data.length, 35, 'la segunda página tiene el resto');
+  assert.strictEqual(p2.data[0].id, 'r50');
+
+  const p3 = paginate(full, 99, 50);
+  assert.strictEqual(p3.data.length, 0, 'página fuera de rango => vacío, sin error');
+});
 
 test('withSingleFlight: peticiones concurrentes a la misma clave fría comparten una única llamada (regresión del cache stampede)', async () => {
   let calls = 0;

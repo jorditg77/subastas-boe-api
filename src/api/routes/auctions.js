@@ -1,14 +1,16 @@
 import { z } from 'zod';
 import { searchAuctionsCached, getAuctionDetailCached } from '../../services/auctionsService.js';
 
+// Nota: no hay filtro por importe (minValue/maxValue). El listado de búsqueda
+// del BOE no expone el valor de cada subasta —solo aparece al abrir el
+// detalle—, así que filtrar por rango exigiría descargar el detalle de cada
+// resultado. Se omite para no anunciar una capacidad que no existe.
 const searchQuerySchema = z.object({
   province: z.string().regex(/^\d{2}$/, 'province debe ser el código numérico de 2 dígitos').optional(),
   status: z.enum(['proxima', 'celebrandose', 'suspendida', 'cancelada', 'concluida', 'finalizada']).optional(),
   type: z.enum(['inmuebles', 'vehiculos', 'muebles', 'todos']).default('todos'),
-  minValue: z.coerce.number().min(0).optional(),
-  maxValue: z.coerce.number().min(0).optional(),
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(50),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
 // El identificador de subasta del BOE tiene forma SUB-XX-AAAA-...; validarlo

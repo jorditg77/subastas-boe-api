@@ -29,7 +29,11 @@ async function requestWithRetry(url, fetchOptions, retryOptions = {}) {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
-      const response = await fetch(url, { dispatcher, ...fetchOptions });
+      const response = await fetch(url, {
+        dispatcher,
+        signal: AbortSignal.timeout(env.boe.requestTimeoutMs),
+        ...fetchOptions,
+      });
 
       if (response.status === 429) {
         throw new Error(`Rate limited: ${response.status}`);
