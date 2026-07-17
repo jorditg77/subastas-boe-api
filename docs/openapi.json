@@ -1,0 +1,322 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Spain BOE Auctions API — Property Foreclosures & Judicial Auctions",
+    "description": "Clean, consolidated JSON data from Spain's official BOE auction portal (subastas.boe.es): judicial foreclosures, notarial auctions and tax-agency (AEAT) auctions. Merges the portal's four separate tabs (General, Authority, Assets/Lots, Bids) into a single JSON object per auction, with automatic legal thresholds (50%/70% reference values under art. 671 LEC, 5% deposit estimate) and GDPR-compliant PII redaction. Ideal for real-estate investors, PropTech dashboards and AI agents (MCP-ready). Data refreshed on demand with a short in-memory cache (2-4h TTL).",
+    "version": "0.1.0",
+    "contact": {
+      "name": "subastas.dev",
+      "url": "https://github.com/jorditg77/subastas-boe-api"
+    }
+  },
+  "servers": [{ "url": "https://api.subastas.dev" }],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Service health check",
+        "description": "Returns service status. No authentication required.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "application/json": {
+                "example": { "status": "ok", "service": "subastas-boe-api", "timestamp": "2026-07-18T00:00:00.000Z" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/provinces": {
+      "get": {
+        "summary": "List Spanish provinces and their BOE codes",
+        "description": "Returns the 52 Spanish provinces with the 2-digit code required by the `province` filter of /auctions.",
+        "operationId": "listProvinces",
+        "responses": {
+          "200": {
+            "description": "Province list",
+            "content": {
+              "application/json": {
+                "example": { "provinces": [{ "code": "08", "name": "Barcelona" }, { "code": "28", "name": "Madrid" }] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auctions": {
+      "get": {
+        "summary": "Search auctions (foreclosures, judicial, notarial, tax-agency)",
+        "description": "Searches active or past auctions on the official BOE portal by province, status and asset type. Results are paginated in-memory over a cached full result set, so paging is instant and does not hit the BOE portal again.",
+        "operationId": "searchAuctions",
+        "parameters": [
+          {
+            "name": "province",
+            "in": "query",
+            "required": false,
+            "description": "2-digit province code (see /provinces). Example: 28 = Madrid, 08 = Barcelona.",
+            "schema": { "type": "string", "pattern": "^\\d{2}$", "example": "28" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Auction status filter.",
+            "schema": {
+              "type": "string",
+              "enum": ["proxima", "celebrandose", "suspendida", "cancelada", "concluida", "finalizada"],
+              "example": "celebrandose"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Asset type: real estate (inmuebles), vehicles (vehiculos), other goods (muebles) or all (todos).",
+            "schema": { "type": "string", "enum": ["inmuebles", "vehiculos", "muebles", "todos"], "default": "todos" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated auction summaries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SearchResponse" },
+                "example": {
+                  "data": [
+                    {
+                      "id": "SUB-JA-2026-260225",
+                      "lots": 1,
+                      "authority": "Sección Civil TI Granollers. Plz.n 2 - GRANOLLERS",
+                      "caseNumber": "0398/21",
+                      "status": "Celebrándose",
+                      "expectedEndDate": "25/06/2026 a las 18:00:00",
+                      "description": "FINCA SITA EN GRANOLLERS ( BARCELONA )",
+                      "detailUrl": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-260225",
+                      "scrapedAt": "2026-06-24T23:15:50.379Z"
+                    }
+                  ],
+                  "pagination": { "page": 1, "limit": 50, "total": 85 },
+                  "metadata": { "source": "https://subastas.boe.es/subastas_ava.php", "scrapedAt": "2026-06-24T23:15:51.389Z", "cached": false }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid query parameters" }
+        }
+      }
+    },
+    "/auctions/{id}": {
+      "get": {
+        "summary": "Consolidated auction detail (all tabs merged)",
+        "description": "Fetches and merges the four BOE portal tabs for one auction: general data (values, dates, deposit), managing authority (court/agency contact), assets grouped by lot (with per-lot financials in multi-lot auctions) and current bids. Includes automatic 50%/70% legal reference values, a 5% deposit estimate, and — for judicial auctions — the applicable award threshold under art. 671 LEC based on whether the asset is the debtor's primary residence. Not legal advice: always verify against the official source.",
+        "operationId": "getAuctionDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "BOE auction identifier, e.g. SUB-JA-2026-260225 (judicial) or SUB-AT-2026-26R0886001165 (tax agency).",
+            "schema": { "type": "string", "pattern": "^SUB-[A-Z]{2}-\\d{4}-[A-Za-z0-9]+$", "example": "SUB-JA-2026-260225" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consolidated auction",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuctionDetail" },
+                "example": {
+                  "id": "SUB-JA-2026-260225",
+                  "general": {
+                    "auctionType": "JUDICIAL EN VÍA DE APREMIO",
+                    "caseAccount": "0730 0000 06 0398 21",
+                    "startDate": "2026-06-05T18:00:00+02:00",
+                    "endDate": "2026-06-25T18:00:00+02:00",
+                    "claimedAmount": 167000.86,
+                    "auctionValue": 167000.86,
+                    "appraisalValue": 267000,
+                    "minimumBid": null,
+                    "bidIncrement": 3340.01,
+                    "publishedDeposit": 8350.04,
+                    "metricsBasedOn": "tasacion",
+                    "reference70": 186900,
+                    "reference50": 133500,
+                    "deposit": 13350,
+                    "applicableThreshold": { "value": 186900, "basis": "reference70", "note": "Vivienda habitual del deudor: umbral del 70% (art. 671 LEC)." },
+                    "documents": []
+                  },
+                  "authority": { "code": "0809642002", "name": "Sección Civil TI Granollers. Plz.n 2", "address": "CL JOSEP UMBERT 124 7 ; 08400 GRANOLLERS", "phone": "936934580", "fax": "936934581", "email": "sce.granollers@xij.gencat.cat" },
+                  "lots": [
+                    {
+                      "idLote": "1",
+                      "description": "FINCA SITA EN GRANOLLERS ( BARCELONA )",
+                      "assets": [
+                        { "label": "Bien 1 - Inmueble (Vivienda)", "description": "FINCA SITA EN GRANOLLERS ( BARCELONA )", "address": "CALLE ALMOGAVERS 21 ESC C , 2º 4ª", "postalCode": "08401", "locality": "GRANOLLERS", "province": "Barcelona", "registryEntry": null, "raw": { "Vivienda habitual": "Sí" } }
+                      ]
+                    }
+                  ],
+                  "bids": { "currentMaxBid": null, "secret": false, "totalBids": 0, "requiresDeposit": true, "perLot": [] },
+                  "metadata": { "sourceUrl": "https://subastas.boe.es/detalleSubasta.php?idSub=SUB-JA-2026-260225&ver=1", "scrapedAt": "2026-06-24T23:15:58.801Z", "cached": false }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid auction id format" },
+          "502": { "description": "BOE portal unreachable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "lots": { "type": "integer", "description": "Number of lots in the auction" },
+                "authority": { "type": "string", "nullable": true },
+                "caseNumber": { "type": "string", "nullable": true },
+                "status": { "type": "string", "nullable": true },
+                "expectedEndDate": { "type": "string", "nullable": true },
+                "description": { "type": "string", "nullable": true },
+                "detailUrl": { "type": "string" },
+                "scrapedAt": { "type": "string", "format": "date-time" }
+              }
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": { "type": "integer" },
+              "limit": { "type": "integer" },
+              "total": { "type": "integer", "description": "Total results for the filters, across all pages" }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "source": { "type": "string" },
+              "scrapedAt": { "type": "string", "format": "date-time" },
+              "cached": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "AuctionDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "general": {
+            "type": "object",
+            "nullable": true,
+            "description": "General tab: dates, economic values and computed legal metrics. metricsBasedOn indicates whether the 50%/70% thresholds were computed over the official appraisal (tasacion) or, when absent, over the auction value (valorSubasta).",
+            "properties": {
+              "auctionType": { "type": "string", "nullable": true },
+              "caseAccount": { "type": "string", "nullable": true },
+              "startDate": { "type": "string", "nullable": true },
+              "endDate": { "type": "string", "nullable": true },
+              "claimedAmount": { "type": "number", "nullable": true },
+              "auctionValue": { "type": "number", "nullable": true },
+              "appraisalValue": { "type": "number", "nullable": true },
+              "minimumBid": { "type": "number", "nullable": true },
+              "bidIncrement": { "type": "number", "nullable": true },
+              "publishedDeposit": { "type": "number", "nullable": true },
+              "metricsBasedOn": { "type": "string", "nullable": true, "enum": ["tasacion", "valorSubasta", null] },
+              "reference70": { "type": "number", "nullable": true },
+              "reference50": { "type": "number", "nullable": true },
+              "deposit": { "type": "number", "nullable": true },
+              "applicableThreshold": {
+                "type": "object",
+                "nullable": true,
+                "description": "Which of the two thresholds (50% or 70%) legally applies for an award without bidders (art. 671 LEC). Only determined for judicial auctions; null value with an explanatory note otherwise. Orientative, not legal advice.",
+                "properties": {
+                  "value": { "type": "number", "nullable": true },
+                  "basis": { "type": "string", "nullable": true },
+                  "note": { "type": "string" }
+                }
+              },
+              "documents": { "type": "array", "items": { "type": "object", "properties": { "title": { "type": "string" }, "url": { "type": "string", "nullable": true } } } }
+            }
+          },
+          "authority": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "code": { "type": "string", "nullable": true },
+              "name": { "type": "string", "nullable": true },
+              "address": { "type": "string", "nullable": true },
+              "phone": { "type": "string", "nullable": true },
+              "fax": { "type": "string", "nullable": true },
+              "email": { "type": "string", "nullable": true }
+            }
+          },
+          "lots": {
+            "type": "array",
+            "description": "Assets grouped by lot. In multi-lot auctions each lot carries its own auctionValue/appraisalValue/reference70/reference50/deposit/applicableThreshold, because economics are per-lot on the BOE.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idLote": { "type": "string" },
+                "description": { "type": "string", "nullable": true },
+                "assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": { "type": "string" },
+                      "description": { "type": "string", "nullable": true },
+                      "address": { "type": "string", "nullable": true },
+                      "postalCode": { "type": "string", "nullable": true },
+                      "locality": { "type": "string", "nullable": true },
+                      "province": { "type": "string", "nullable": true },
+                      "registryEntry": { "type": "string", "nullable": true },
+                      "raw": { "type": "object", "description": "All raw fields as published by the BOE for this asset (varies by asset type: cadastral reference, charges, possession status...)." }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "bids": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "currentMaxBid": { "type": "number", "nullable": true },
+              "secret": { "type": "boolean", "description": "True when the BOE keeps the current maximum bid secret" },
+              "totalBids": { "type": "integer", "nullable": true },
+              "requiresDeposit": { "type": "boolean" },
+              "perLot": { "type": "array", "items": { "type": "object", "properties": { "lot": { "type": "string" }, "amount": { "type": "number", "nullable": true } } } }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "sourceUrl": { "type": "string" },
+              "scrapedAt": { "type": "string", "format": "date-time" },
+              "cached": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
