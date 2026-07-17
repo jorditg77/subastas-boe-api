@@ -11,6 +11,8 @@
     "pm2": "pm2 start src/index.js --name subastas-boe-api",
     "pm2:stop": "pm2 stop subastas-boe-api",
     "test": "node --test",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.js\" \"tests/*.js\"",
     "loadtest:health": "autocannon -c 50 -d 10 http://localhost:3000/health"
   },
   "dependencies": {
@@ -28,8 +30,12 @@
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "autocannon": "^8.0.0",
-    "pm2": "^5.4.0"
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "pm2": "^5.4.0",
+    "prettier": "^3.9.5"
   },
   "engines": {
     "node": ">=20.0.0"

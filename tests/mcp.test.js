@@ -6,9 +6,7 @@ import { TOOLS, listProvincesTool, calculateAuctionMetricsTool, searchAuctionsTo
 
 test('buildMcpServer registra las 4 tools sin lanzar', () => {
   const server = buildMcpServer();
-  for (const tool of TOOLS) {
-    assert.ok(server.server, 'el servidor subyacente existe');
-  }
+  assert.ok(server.server, 'el servidor subyacente existe');
   assert.strictEqual(TOOLS.length, 4);
   assert.deepStrictEqual(
     TOOLS.map((t) => t.name),

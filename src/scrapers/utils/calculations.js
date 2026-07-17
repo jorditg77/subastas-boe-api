@@ -51,7 +51,7 @@ export function parseCurrency(value) {
   if (typeof value === 'number') return value;
 
   const cleaned = value
-    .replace(/[\.,](?=\d{3})/g, '') // puntos separadores de miles
+    .replace(/[.,](?=\d{3})/g, '') // puntos separadores de miles
     .replace(/,/g, '.') // coma decimal a punto
     .replace(/[^\d.-]/g, ''); // eliminar símbolos
 

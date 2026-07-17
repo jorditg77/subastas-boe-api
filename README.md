@@ -1,6 +1,6 @@
 # Subastas BOE API
 
-![Status](https://img.shields.io/badge/status-en%20desarrollo%20activo-yellow)
+![CI](https://github.com/jorditg77/subastas-boe-api/actions/workflows/test.yml/badge.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
 ![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)
 
