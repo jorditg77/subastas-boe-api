@@ -4,6 +4,10 @@ config();
 
 export const env = {
   port: parseInt(process.env.PORT || '3000', 10),
+  // Por defecto se escucha SOLO en localhost: la API queda accesible
+  // únicamente a través del túnel de Cloudflare (cloudflared corre en la misma
+  // máquina), no desde otros equipos de la red local. Cierra el bypass por LAN.
+  host: process.env.HOST || '127.0.0.1',
   nodeEnv: process.env.NODE_ENV || 'development',
   rapidApiProxySecret: process.env.RAPIDAPI_PROXY_SECRET || '',
   // Secretos adicionales de otros gateways/marketplaces (p. ej. Zyla),
@@ -32,6 +36,16 @@ export const env = {
     // slot del limitador (y deje en espera a todos los clientes que comparten
     // esa misma petición vía single-flight) de forma indefinida.
     requestTimeoutMs: parseInt(process.env.BOE_REQUEST_TIMEOUT_MS || '20000', 10),
+  },
+  // Rate limit propio como TECHO de protección del servidor (no de la
+  // facturación, que la gestiona el marketplace). Frena el martilleo de
+  // peticiones sin secreto y a un atacante que llegara con un secreto filtrado
+  // desde su propia IP. El límite es holgado: a la escala del producto, el
+  // tráfico legítimo (que llega con la IP del gateway vía CF-Connecting-IP)
+  // nunca lo alcanza.
+  rateLimit: {
+    max: parseInt(process.env.RATE_LIMIT_MAX || '200', 10),
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
   },
   logLevel: process.env.LOG_LEVEL || 'info',
 };

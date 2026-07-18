@@ -16,6 +16,7 @@
     "loadtest:health": "autocannon -c 50 -d 10 http://localhost:3000/health"
   },
   "dependencies": {
+    "@fastify/rate-limit": "^11.1.0",
     "@fastify/swagger": "^9.0.0",
     "@fastify/swagger-ui": "^5.0.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
