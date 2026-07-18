@@ -6,6 +6,13 @@ export const env = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   rapidApiProxySecret: process.env.RAPIDAPI_PROXY_SECRET || '',
+  // Secretos adicionales de otros gateways/marketplaces (p. ej. Zyla),
+  // separados por comas. Cada marketplace recibe su propio secreto para poder
+  // rotarlos de forma independiente.
+  extraProxySecrets: (process.env.GATEWAY_EXTRA_SECRETS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   cache: {
     maxMemoryMB: parseInt(process.env.CACHE_MAX_MEMORY_MB || '1500', 10),
     auctionTtlSeconds: parseInt(process.env.CACHE_AUCTION_TTL_SECONDS || '14400', 10),

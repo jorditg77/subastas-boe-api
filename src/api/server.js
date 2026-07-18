@@ -9,15 +9,19 @@ import { auctionsRoutes } from './routes/auctions.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 export async function buildServer() {
-  // FAIL-CLOSED: en producción el secreto del proxy es obligatorio. Sin él, la
+  // Conjunto de secretos de gateway válidos: el de RapidAPI más los de otros
+  // marketplaces (GATEWAY_EXTRA_SECRETS). Cada gateway autentica con el suyo.
+  const validSecrets = new Set([env.rapidApiProxySecret, ...env.extraProxySecrets].filter(Boolean));
+
+  // FAIL-CLOSED: en producción es obligatorio al menos un secreto. Sin él, la
   // API quedaría accesible a cualquiera que descubra la URL del túnel,
-  // saltándose la facturación de RapidAPI. Antes esto "fallaba abierto" (si el
-  // secreto faltaba, simplemente no se registraba la verificación); ahora se
-  // rechaza el arranque para que un despliegue mal configurado no exponga el
-  // servicio sin querer.
-  if (env.nodeEnv === 'production' && !env.rapidApiProxySecret) {
+  // saltándose la facturación de los marketplaces. Antes esto "fallaba
+  // abierto" (si el secreto faltaba, simplemente no se registraba la
+  // verificación); ahora se rechaza el arranque para que un despliegue mal
+  // configurado no exponga el servicio sin querer.
+  if (env.nodeEnv === 'production' && validSecrets.size === 0) {
     throw new Error(
-      'RAPIDAPI_PROXY_SECRET es obligatorio en producción (protege la API tras el túnel). ' +
+      'RAPIDAPI_PROXY_SECRET (o GATEWAY_EXTRA_SECRETS) es obligatorio en producción (protege la API tras el túnel). ' +
         'Configúralo en .env, o usa NODE_ENV=development para pruebas locales.'
     );
   }
@@ -36,8 +40,10 @@ export async function buildServer() {
     app.addHook('onRequest', async (request, reply) => {
       if (request.url === '/health' || request.url.startsWith('/health?')) return;
 
-      const provided = request.headers['x-rapidapi-proxy-secret'];
-      if (provided !== env.rapidApiProxySecret) {
+      // Se acepta la cabecera de RapidAPI o la genérica X-Gateway-Secret
+      // (para otros marketplaces como Zyla, que definen sus propias cabeceras).
+      const provided = request.headers['x-rapidapi-proxy-secret'] ?? request.headers['x-gateway-secret'];
+      if (!provided || !validSecrets.has(provided)) {
         return reply.code(401).send({ error: 'No autorizado', code: 'MISSING_PROXY_SECRET' });
       }
     });
