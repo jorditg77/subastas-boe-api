@@ -1,0 +1,10 @@
+// Configuración de despliegue de la landing (subastas.dev) como Worker de
+// assets estáticos en Cloudflare. Solo sirve la carpeta landing/; la API va
+// aparte (túnel en el HP Pavilion) y no pasa por aquí.
+{
+  "name": "subastas-dev-landing",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./landing"
+  }
+}
