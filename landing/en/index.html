@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spain BOE Auction API — Property Foreclosures & Judicial Auctions as JSON</title>
+  <meta name="description" content="REST API + MCP server for Spain's official BOE auction portal: judicial foreclosures, notarial and tax-agency auctions as clean JSON. Legal thresholds (art. 671 LEC), per-lot financials, GDPR-safe. For real-estate investors, PropTech and AI agents.">
+  <link rel="canonical" href="https://subastas.dev/en/">
+  <link rel="alternate" hreflang="es" href="https://subastas.dev/">
+  <link rel="alternate" hreflang="en" href="https://subastas.dev/en/">
+  <link rel="alternate" hreflang="x-default" href="https://subastas.dev/">
+  <meta property="og:title" content="Spain BOE Auction API — subastas.dev">
+  <meta property="og:description" content="Spain's judicial property auctions as clean JSON: the official portal's 4 tabs merged into one call, with legal thresholds computed. MCP-ready for AI agents.">
+  <meta property="og:url" content="https://subastas.dev/en/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://subastas.dev/logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://subastas.dev/logo.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a7d5f'/%3E%3Cpath d='M20 40h24v6H20zM24 18l14 3-2 8-14-3zM35 24l8 14-5 3-8-14z' fill='%23fff'/%3E%3C/svg%3E">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Spain BOE Auction API",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "url": "https://subastas.dev/en/",
+    "description": "REST API and MCP server that consolidates Spain's official BOE auction portal into clean JSON, with automatic legal threshold calculations (art. 671 LEC) and PII redaction.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free plan with 100 requests/month" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How can I get Spanish judicial auction (BOE) data as JSON?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Spain's official portal subastas.boe.es has no API. Spain BOE Auction API extracts and consolidates each auction (general data, managing authority, per-lot assets and bids) into one JSON object, available via REST or from an AI agent via MCP." }
+      },
+      {
+        "@type": "Question",
+        "name": "Which legal threshold applies in a Spanish judicial auction, 50% or 70%?",
+        "acceptedAnswer": { "@type": "Answer", "text": "With no bidders, article 671 of the Spanish Civil Procedure Act sets the award threshold based on whether the asset is the debtor's primary residence: 70% if it is, 50% otherwise. The API computes both values and flags the applicable one using the primary-residence field published by the BOE itself. Orientative, not legal advice." }
+      },
+      {
+        "@type": "Question",
+        "name": "How fresh is the auction data?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Data is fetched on demand from the official portal and cached for 2-4 hours. Auction lifecycles span weeks, so this freshness is more than enough for monitoring and alerts." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I connect Spanish auctions to Claude or another AI agent?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The project ships an MCP (Model Context Protocol) server with search, consolidated detail and threshold calculation tools, compatible with Claude Desktop, Cursor and any MCP client." }
+      }
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #ffffff; --bg2: #f4f7f6; --text: #1a2b26; --muted: #5a6e67;
+      --brand: #0a7d5f; --brand2: #0c9a75; --border: #dde5e2; --code-bg: #0f1d18; --code-text: #d7efe6;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0e1513; --bg2: #14201c; --text: #e8f1ee; --muted: #9fb3ac; --brand: #2fbf95; --brand2: #37d8a9; --border: #23332d; --code-bg: #0a110e; --code-text: #c8e8db; }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body { font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+    header.site { padding: 18px 0; border-bottom: 1px solid var(--border); }
+    header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .logo { font-weight: 800; font-size: 1.15rem; color: var(--text); text-decoration: none; }
+    .logo span { color: var(--brand); }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: .95rem; }
+    nav a:hover { color: var(--brand); }
+    .hero { padding: 72px 0 56px; background: linear-gradient(180deg, var(--bg2), var(--bg)); }
+    .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 42px; align-items: center; }
+    @media (max-width: 820px) { .hero .wrap { grid-template-columns: 1fr; } }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.15; margin-bottom: 16px; }
+    h1 em { color: var(--brand); font-style: normal; }
+    .sub { color: var(--muted); font-size: 1.1rem; margin-bottom: 26px; }
+    .cta { display: inline-block; background: var(--brand); color: #fff; padding: 13px 26px; border-radius: 10px; font-weight: 700; text-decoration: none; margin: 0 10px 10px 0; }
+    .cta:hover { background: var(--brand2); }
+    .cta.ghost { background: transparent; color: var(--brand); border: 2px solid var(--brand); }
+    pre { background: var(--code-bg); color: var(--code-text); border-radius: 12px; padding: 18px; overflow-x: auto; font-size: .78rem; line-height: 1.45; }
+    code.inline { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; font-size: .9em; }
+    section { padding: 56px 0; }
+    section.alt { background: var(--bg2); }
+    h2 { font-size: 1.6rem; margin-bottom: 10px; }
+    .lead { color: var(--muted); max-width: 720px; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: .95rem; }
+    table.pricing { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    table.pricing th, table.pricing td { padding: 12px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    table.pricing th { font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    .price { font-weight: 800; color: var(--brand); white-space: nowrap; }
+    .note { font-size: .85rem; color: var(--muted); margin-top: 14px; }
+    footer { border-top: 1px solid var(--border); padding: 30px 0 40px; color: var(--muted); font-size: .9rem; }
+    footer a { color: var(--muted); }
+    .overflow { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="/en/">subastas<span>.dev</span></a>
+      <nav>
+        <a href="#product">Product</a>
+        <a href="#mcp">AI agents (MCP)</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://github.com/jorditg77/subastas-boe-api">GitHub</a>
+        <a href="/">ES</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <h1>Spain's property foreclosures, <em>as clean JSON</em> in one call</h1>
+        <p class="sub">Judicial, notarial and tax-agency auctions from Spain's official portal <strong>subastas.boe.es</strong>, consolidated with legal thresholds already computed. For real-estate investors, PropTech and AI agents.</p>
+        <a class="cta" href="https://rapidapi.com/jorditg77/api/spain-boe-auctions-property-foreclosures">Start free on RapidAPI</a>
+        <a class="cta ghost" href="#mcp">Connect to Claude / Cursor</a>
+      </div>
+      <div class="overflow">
+<pre>GET /auctions/SUB-JA-2026-260225
+
+{
+  "general": {
+    "auctionType": "JUDICIAL EN VÍA DE APREMIO",
+    "endDate": "2026-06-25T18:00:00+02:00",
+    "appraisalValue": 267000,
+    "reference70": 186900,
+    "reference50": 133500,
+    "deposit": 13350,
+    "applicableThreshold": {
+      "value": 186900,
+      "basis": "reference70",
+      "note": "Primary residence: 70% (art. 671 LEC)"
+    }
+  },
+  "authority": { "name": "Sección Civil TI Granollers…" },
+  "lots": [ { "assets": [ { "locality": "GRANOLLERS", … } ] } ],
+  "bids": { "totalBids": 0, "requiresDeposit": true }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <section id="product">
+    <div class="wrap">
+      <h2>The official portal, without the pain</h2>
+      <p class="lead">Spain's BOE publishes every auction split across four separate tabs, with no official API. This API does the consolidation and adds the analysis layer investors actually need.</p>
+      <div class="grid" style="margin-top: 26px;">
+        <div class="card"><h3>⚖️ Applicable legal threshold</h3><p>50% and 70% reference values computed, and for judicial auctions, which one applies under art. 671 LEC (primary residence yes/no, as published by the BOE itself).</p></div>
+        <div class="card"><h3>📦 Per-lot financials</h3><p>In multi-lot auctions each lot carries its own value, deposit and thresholds — exactly as the BOE structures them.</p></div>
+        <div class="card"><h3>🛡️ GDPR by default</h3><p>Spanish ID numbers and IBANs are redacted automatically before every response.</p></div>
+        <div class="card"><h3>⚡ Fast and considerate</h3><p>In-memory cache with short TTL: typical cached responses under 100 ms, and one single request to the BOE per search regardless of how many clients ask.</p></div>
+        <div class="card"><h3>🔍 Auditable code</h3><p>The source code is public on GitHub (non-commercial license): you can see exactly what is extracted and how.</p></div>
+        <div class="card"><h3>📄 Official data</h3><p>Source: the public portal of Spain's Official State Gazette. Orientative — always verify with a registry extract before bidding.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="mcp">
+    <div class="wrap">
+      <h2>Your AI agent, connected to Spanish auctions</h2>
+      <p class="lead">The backend ships an <strong>MCP</strong> (Model Context Protocol) server: Claude, Cursor or any compatible agent can search auctions, fetch consolidated detail and compute thresholds directly from context — literally ask "find flats in Barcelona ending this week".</p>
+      <div class="overflow">
+<pre>// claude_desktop_config.json
+{
+  "mcpServers": {
+    "subastas-boe": {
+      "command": "node",
+      "args": ["/path/to/subastas-boe-api/src/mcp/server.js"]
+    }
+  }
+}</pre>
+      </div>
+      <p class="note">Available tools: <code class="inline">search_auctions</code> · <code class="inline">get_auction_detail</code> · <code class="inline">calculate_auction_metrics</code> · <code class="inline">list_provinces</code></p>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <h2>Pricing</h2>
+      <p class="lead">Subscriptions are managed through RapidAPI: sign up in a minute with your account, no sales calls.</p>
+      <div class="overflow">
+      <table class="pricing">
+        <tr><th>Plan</th><th>Price</th><th>Requests/month</th><th>Best for</th></tr>
+        <tr><td><strong>Free</strong></td><td class="price">$0</td><td>100</td><td>Testing the API and integrations</td></tr>
+        <tr><td><strong>Starter</strong></td><td class="price">$9.90/mo</td><td>500</td><td>Individual investor, single-province alerts</td></tr>
+        <tr><td><strong>Pro</strong></td><td class="price">$29.90/mo</td><td>2,000</td><td>Active multi-province monitoring</td></tr>
+        <tr><td><strong>Business</strong></td><td class="price">$89/mo</td><td>10,000</td><td>PropTech, law firms, dashboards</td></tr>
+      </table>
+      </div>
+      <p class="note">No lock-in. Hard monthly quotas: when you run out, requests pause — never surprise overage charges.</p>
+    </div>
+  </section>
+
+  <section class="alt" id="faq">
+    <div class="wrap">
+      <h2>Frequently asked questions</h2>
+      <div class="grid" style="margin-top: 22px;">
+        <div class="card">
+          <h3>How can I get Spanish judicial auction (BOE) data as JSON?</h3>
+          <p>The official portal has no API. This API extracts and consolidates each auction (general data, authority, per-lot assets and bids) into one JSON object, via REST or from an AI agent via MCP.</p>
+        </div>
+        <div class="card">
+          <h3>Which threshold applies, 50% or 70%?</h3>
+          <p>With no bidders, art. 671 of the Spanish Civil Procedure Act sets it based on whether the asset is the debtor's primary residence: 70% if it is, 50% otherwise. The API flags the applicable one. Orientative, not legal advice.</p>
+        </div>
+        <div class="card">
+          <h3>How fresh is the data?</h3>
+          <p>Fetched on demand and cached 2-4 hours. Auctions run for weeks — plenty fresh for monitoring and alerts.</p>
+        </div>
+        <div class="card">
+          <h3>Can I connect it to Claude or another AI agent?</h3>
+          <p>Yes: it ships an MCP server with search, consolidated detail and threshold tools, compatible with Claude Desktop, Cursor and any MCP client.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p><strong>subastas.dev</strong> — data reused from the public auction portal of the <a href="https://www.boe.es">Spanish Official State Gazette</a> (<a href="https://subastas.boe.es">subastas.boe.es</a>) under Spanish Law 37/2007 on the reuse of public sector information. Computed fields (thresholds, deposit estimates) are our own and identified as such. This service is orientative and is not legal or investment advice: always verify against the official source and a registry extract before bidding.</p>
+      <p style="margin-top: 10px;">
+        <a href="https://github.com/jorditg77/subastas-boe-api">GitHub</a> ·
+        <a href="https://github.com/jorditg77/subastas-boe-api/blob/master/docs/PRIVACY.md">Privacy</a> ·
+        <a href="https://github.com/jorditg77/subastas-boe-api/blob/master/docs/TERMS.md">Terms</a> ·
+        <a href="/">Versión en español</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

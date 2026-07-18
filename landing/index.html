@@ -6,10 +6,16 @@
   <title>Subastas BOE API — Subastas judiciales de España en JSON limpio</title>
   <meta name="description" content="API REST + servidor MCP con las subastas judiciales, notariales y de la AEAT del BOE (subastas.boe.es) consolidadas en JSON: umbrales legales del art. 671 LEC, lotes, pujas y datos RGPD-safe. Spain BOE auction API — property foreclosures JSON for PropTech & AI agents.">
   <link rel="canonical" href="https://subastas.dev/">
+  <link rel="alternate" hreflang="es" href="https://subastas.dev/">
+  <link rel="alternate" hreflang="en" href="https://subastas.dev/en/">
+  <link rel="alternate" hreflang="x-default" href="https://subastas.dev/">
   <meta property="og:title" content="Subastas BOE API — subastas.dev">
   <meta property="og:description" content="Las subastas del BOE en JSON limpio: 4 pestañas del portal oficial consolidadas en una llamada, con umbrales legales calculados. Para inversores, PropTech y agentes de IA (MCP).">
   <meta property="og:url" content="https://subastas.dev/">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://subastas.dev/logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://subastas.dev/logo.png">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a7d5f'/%3E%3Cpath d='M20 40h24v6H20zM24 18l14 3-2 8-14-3zM35 24l8 14-5 3-8-14z' fill='%23fff'/%3E%3C/svg%3E">
   <script type="application/ld+json">
   {
@@ -21,6 +27,39 @@
     "url": "https://subastas.dev/",
     "description": "API REST y servidor MCP que consolida las subastas del portal oficial del BOE español en JSON limpio, con cálculos legales automáticos (art. 671 LEC) y redacción de datos personales.",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Plan gratuito de 100 peticiones/mes" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cómo puedo obtener los datos de las subastas judiciales del BOE en JSON?",
+        "acceptedAnswer": { "@type": "Answer", "text": "El portal oficial subastas.boe.es no ofrece API. Subastas BOE API extrae y consolida cada subasta (datos generales, autoridad, bienes por lote y pujas) en un único objeto JSON accesible con una llamada REST o desde un agente de IA vía MCP." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué umbral legal aplica en una subasta judicial, el 50% o el 70%?",
+        "acceptedAnswer": { "@type": "Answer", "text": "En subastas judiciales sin postores, el art. 671 LEC fija el umbral según si el bien es la vivienda habitual del deudor: 70% si lo es, 50% si no. La API calcula ambos valores y señala cuál aplica usando el dato de vivienda habitual que publica el propio BOE. Es orientativo, no asesoramiento legal." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cada cuánto se actualizan los datos de las subastas?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Los datos se obtienen bajo demanda del portal oficial y se cachean entre 2 y 4 horas. El ciclo de vida de una subasta dura semanas, por lo que esta frescura es más que suficiente para monitorización y alertas." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿La API incluye datos personales de los deudores?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Los DNI/NIE e IBAN se redactan automáticamente de todas las respuestas para cumplir el RGPD. Los datos reutilizados provienen de una fuente pública oficial conforme a la Ley 37/2007." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo conectar las subastas del BOE a Claude o a otro agente de IA?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sí. El proyecto incluye un servidor MCP (Model Context Protocol) con herramientas de búsqueda, detalle consolidado y cálculo de umbrales, compatible con Claude Desktop, Cursor y cualquier cliente MCP." }
+      }
+    ]
   }
   </script>
   <style>
@@ -83,6 +122,7 @@
         <a href="#mcp">Agentes IA (MCP)</a>
         <a href="#precios">Precios</a>
         <a href="https://github.com/jorditg77/subastas-boe-api">GitHub</a>
+        <a href="/en/">EN</a>
       </nav>
     </div>
   </header>
@@ -175,6 +215,38 @@
       </table>
       </div>
       <p class="note">Sin permanencia. Los límites se aplican por mes natural; al agotar la cuota, el plan se pausa (nunca hay cargos por exceso).</p>
+    </div>
+  </section>
+
+  <section class="alt" id="faq">
+    <div class="wrap">
+      <h2>Preguntas frecuentes</h2>
+      <div class="grid" style="margin-top: 22px;">
+        <div class="card">
+          <h3>¿Cómo obtengo los datos de las subastas judiciales del BOE en JSON?</h3>
+          <p>El portal oficial no ofrece API. Subastas BOE API extrae y consolida cada subasta (datos generales, autoridad, bienes por lote y pujas) en un único objeto JSON, accesible por REST o desde un agente de IA vía MCP.</p>
+        </div>
+        <div class="card">
+          <h3>¿Qué umbral aplica en una subasta judicial, el 50% o el 70%?</h3>
+          <p>Sin postores, el art. 671 LEC fija el umbral según si el bien es la vivienda habitual del deudor: 70% si lo es, 50% si no. La API calcula ambos y señala cuál aplica con el dato que publica el propio BOE. Orientativo, no asesoramiento legal.</p>
+        </div>
+        <div class="card">
+          <h3>¿Cada cuánto se actualizan los datos?</h3>
+          <p>Se obtienen bajo demanda del portal oficial y se cachean 2-4 horas. Una subasta dura semanas: es frescura de sobra para monitorización y alertas.</p>
+        </div>
+        <div class="card">
+          <h3>¿Incluye datos personales de los deudores?</h3>
+          <p>No. DNI/NIE e IBAN se redactan automáticamente de todas las respuestas (RGPD). La reutilización de esta fuente pública está amparada por la Ley 37/2007.</p>
+        </div>
+        <div class="card">
+          <h3>¿Puedo conectarla a Claude u otro agente de IA?</h3>
+          <p>Sí: incluye un servidor MCP con búsqueda, detalle consolidado y cálculo de umbrales, compatible con Claude Desktop, Cursor y cualquier cliente MCP.</p>
+        </div>
+        <div class="card">
+          <h3>¿De dónde salen los datos?</h3>
+          <p>Del portal público de subastas de la Agencia Estatal Boletín Oficial del Estado. Cada respuesta incluye la URL de la fuente oficial para que puedas verificarla.</p>
+        </div>
+      </div>
     </div>
   </section>
 
