@@ -25,7 +25,7 @@ The official portal splits every auction across **4 separate tabs** (General, Au
 ### Quick start
 
 ```bash
-curl "https://spain-boe-auctions.p.rapidapi.com/auctions?province=28&type=inmuebles&status=celebrandose" \
+curl "https://spain-boe-auctions-property-foreclosures.p.rapidapi.com/auctions?province=28&type=inmuebles&status=celebrandose" \
   -H "X-RapidAPI-Key: YOUR_KEY"
 ```
 

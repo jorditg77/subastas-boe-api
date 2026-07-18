@@ -242,4 +242,4 @@ Proyecto dividido en dos bloques: completar el producto técnico y, después, ma
 
 ## Licencia
 
-Código fuente disponible bajo **[PolyForm Noncommercial License 1.0.0](LICENSE)**: puedes leerlo, estudiarlo y usarlo con fines no comerciales (educativos, de investigación, portfolio). El uso comercial del código —incluido desplegar una instancia propia del servicio— no está permitido sin autorización expresa del autor. El servicio en sí se ofrece comercialmente a través de RapidAPI.
+Código fuente disponible bajo **[PolyForm Noncommercial License 1.0.0](LICENSE)**: puedes leerlo, estudiarlo y usarlo con fines no comerciales (educativos, de investigación, portfolio). El uso comercial del código —incluido desplegar una instancia propia del servicio— no está permitido sin autorización expresa del autor. El servicio en sí se ofrece comercialmente en [RapidAPI](https://rapidapi.com/jorditg77/api/spain-boe-auctions-property-foreclosures) · más información en [subastas.dev](https://subastas.dev).
