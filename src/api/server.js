@@ -23,11 +23,21 @@ function secretMatches(provided, validSecrets) {
   return false;
 }
 
-// IP real del cliente detrás del túnel: Cloudflare la inyecta en
-// CF-Connecting-IP. Sin esto, todas las peticiones parecerían venir de
-// localhost (cloudflared) y el rate limit las agruparía en un único cubo.
+// Clave del rate limit = IP real del cliente detrás del túnel (Cloudflare la
+// inyecta en CF-Connecting-IP; sin esto todo parecería venir de localhost).
+//
+// DECISIÓN DE SEGURIDAD: la clave es la IP, NO un identificador de usuario del
+// marketplace (p. ej. X-RapidAPI-User). Usar ese header sería inseguro: llega
+// SIN autenticar (el rate limit corre antes que la validación del secreto), así
+// que un atacante podría enviar el usuario de una víctima y agotar su cubo,
+// provocándole un 429 (DoS dirigido). La cuota justa POR usuario ya la garantiza
+// el marketplace con los planes; el rate limit del backend es solo un techo
+// anti-abuso del recurso. Contrapartida asumida: los clientes que compartan la
+// IP de salida de un mismo gateway comparten cubo, por eso el límite es holgado.
 function clientIp(request) {
-  return request.headers['cf-connecting-ip'] || request.ip;
+  const ip = request.headers['cf-connecting-ip'] || request.ip;
+  // CF-Connecting-IP es un valor único, pero se normaliza por robustez.
+  return Array.isArray(ip) ? ip[0] : String(ip).split(',')[0].trim();
 }
 
 export async function buildServer() {
@@ -52,11 +62,19 @@ export async function buildServer() {
 
   // Techo de protección del servidor: límite por IP real (CF-Connecting-IP).
   // No sustituye a la cuota del marketplace; es una red de seguridad ante
-  // abuso directo del backend.
+  // abuso directo del backend. `cache` acota el nº de cubos rastreados en
+  // memoria (evita crecimiento ante muchas IPs distintas).
   await app.register(rateLimit, {
     max: env.rateLimit.max,
     timeWindow: env.rateLimit.windowMs,
     keyGenerator: clientIp,
+    cache: 10000,
+  });
+
+  // Cabecera anti-sniffing en todas las respuestas: impide que un cliente
+  // reinterprete el JSON como otro tipo de contenido.
+  app.addHook('onSend', async (request, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
   });
 
   // Verificación del gateway. RapidAPI/Zyla inyectan una cabecera secreta en

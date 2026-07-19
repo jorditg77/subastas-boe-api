@@ -44,7 +44,11 @@ export const env = {
   // tráfico legítimo (que llega con la IP del gateway vía CF-Connecting-IP)
   // nunca lo alcanza.
   rateLimit: {
-    max: parseInt(process.env.RATE_LIMIT_MAX || '200', 10),
+    // 300/min por IP: holgado a propósito. Los clientes que compartan la IP de
+    // salida de un gateway comparten cubo (ver comentario en server.js), así
+    // que se deja alto para no provocar 429 falsos; el recurso caro (el BOE) ya
+    // está protegido aparte por el limitador de concurrencia boeLimit.
+    max: parseInt(process.env.RATE_LIMIT_MAX || '300', 10),
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
   },
   logLevel: process.env.LOG_LEVEL || 'info',

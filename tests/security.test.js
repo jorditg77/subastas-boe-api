@@ -57,6 +57,24 @@ test('/docs NO está expuesto en producción => 404', async () => {
   assert.strictEqual(res.statusCode, 404);
 });
 
+test('id de subasta demasiado largo => rechazado antes del scraper', async () => {
+  // 80 chars: pasa el límite de longitud de path de Fastify (100) pero supera
+  // nuestro .max(50) => 400. Un id aún mayor lo corta Fastify con 404. Ambos
+  // impiden que un identificador enorme llegue al scraper o a la caché.
+  const largo = 'SUB-JA-2026-' + 'A'.repeat(68);
+  const res = await inject(`/auctions/${largo}`, { 'x-rapidapi-proxy-secret': SECRET });
+  assert.strictEqual(res.statusCode, 400);
+
+  const enorme = 'SUB-JA-2026-' + 'A'.repeat(2000);
+  const res2 = await inject(`/auctions/${enorme}`, { 'x-rapidapi-proxy-secret': SECRET });
+  assert.ok([400, 404].includes(res2.statusCode), 'un id enorme se rechaza (400 o 404), nunca llega al scraper');
+});
+
+test('respuestas llevan X-Content-Type-Options: nosniff', async () => {
+  const res = await inject('/health');
+  assert.strictEqual(res.headers['x-content-type-options'], 'nosniff');
+});
+
 test('rate limit: supera el máximo por IP y devuelve 429', async () => {
   const headers = { 'x-rapidapi-proxy-secret': SECRET };
   const ip = '203.0.113.77';

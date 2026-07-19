@@ -15,9 +15,14 @@ const searchQuerySchema = z.object({
 
 // El identificador de subasta del BOE tiene forma SUB-XX-AAAA-...; validarlo
 // evita reenviar entradas arbitrarias del usuario al portal y que la caché se
-// llene de claves basura.
+// llene de claves basura. El .max() acota la longitud (los ids reales rondan
+// los 26 caracteres) para que nadie use la clave de caché o la URL saliente
+// como vector para inflar memoria con un identificador enorme.
 const idParamSchema = z.object({
-  id: z.string().regex(/^SUB-[A-Z]{2}-\d{4}-[A-Za-z0-9]+$/, 'id de subasta no válido'),
+  id: z
+    .string()
+    .max(50, 'id de subasta demasiado largo')
+    .regex(/^SUB-[A-Z]{2}-\d{4}-[A-Za-z0-9]+$/, 'id de subasta no válido'),
 });
 
 export async function auctionsRoutes(app) {
