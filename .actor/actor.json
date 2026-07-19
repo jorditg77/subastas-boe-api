@@ -1,0 +1,13 @@
+{
+  "actorSpecification": 1,
+  "name": "spain-boe-auctions",
+  "title": "Spain BOE Auctions - Property Foreclosures",
+  "description": "Search Spain's official BOE auctions (judicial foreclosures, notarial and tax-agency) and get consolidated JSON with legal thresholds (art. 671 LEC).",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "./Dockerfile",
+  "input": "./input_schema.json",
+  "readme": "../apify/README.md",
+  "minMemoryMbytes": 256,
+  "maxMemoryMbytes": 1024
+}

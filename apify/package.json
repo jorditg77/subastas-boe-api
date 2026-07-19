@@ -1,0 +1,22 @@
+{
+  "name": "spain-boe-auctions-actor",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Apify Actor for Spain BOE auctions. Reuses the scrapers in ../src.",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "apify": "^3.2.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.0.0",
+    "p-limit": "^6.2.0",
+    "pino": "^9.0.0",
+    "undici": "^6.0.0"
+  },
+  "comment": "Estas deps son las que usa src/scrapers/*. Si src/ añade una dependencia nueva, replicarla aquí (el actor es un empaquetado autónomo).",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

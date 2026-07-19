@@ -1,0 +1,54 @@
+{
+  "title": "Spain BOE Auctions input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "province": {
+      "title": "Province code",
+      "type": "string",
+      "editor": "textfield",
+      "description": "2-digit Spanish province code (e.g. 28 = Madrid, 08 = Barcelona). Leave empty for all provinces.",
+      "example": "28"
+    },
+    "status": {
+      "title": "Auction status",
+      "type": "string",
+      "editor": "select",
+      "description": "Filter by auction status.",
+      "enum": ["proxima", "celebrandose", "suspendida", "cancelada", "concluida", "finalizada"],
+      "enumTitles": [
+        "Upcoming (proxima)",
+        "Ongoing (celebrandose)",
+        "Suspended (suspendida)",
+        "Cancelled (cancelada)",
+        "Concluded (concluida)",
+        "Finished (finalizada)"
+      ],
+      "default": "celebrandose"
+    },
+    "type": {
+      "title": "Asset type",
+      "type": "string",
+      "editor": "select",
+      "description": "Filter by asset type.",
+      "enum": ["inmuebles", "vehiculos", "muebles", "todos"],
+      "enumTitles": ["Real estate", "Vehicles", "Other goods", "All"],
+      "default": "todos"
+    },
+    "maxResults": {
+      "title": "Max results",
+      "type": "integer",
+      "editor": "number",
+      "description": "Maximum number of auctions to return (0 = no limit).",
+      "default": 100,
+      "minimum": 0
+    },
+    "includeDetails": {
+      "title": "Include full detail",
+      "type": "boolean",
+      "editor": "checkbox",
+      "description": "If enabled, fetch the full consolidated detail of each auction (assets, lots, bids, legal thresholds). Slower and heavier; leave off for a fast listing.",
+      "default": false
+    }
+  }
+}
