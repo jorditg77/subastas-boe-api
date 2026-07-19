@@ -1,0 +1,77 @@
+{
+  "serverInfo": {
+    "name": "subastas-boe-api",
+    "version": "0.1.0"
+  },
+  "authentication": {
+    "required": false
+  },
+  "tools": [
+    {
+      "name": "search_auctions",
+      "description": "Search auctions on Spain's official BOE portal (judicial foreclosures, notarial and tax-agency auctions) by province, status and asset type.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "province": {
+            "type": "string",
+            "pattern": "^\\d{2}$",
+            "description": "2-digit Spanish province code (see list_provinces)."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proxima", "celebrandose", "suspendida", "cancelada", "concluida", "finalizada"],
+            "description": "Auction status filter."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["inmuebles", "vehiculos", "muebles", "todos"],
+            "description": "Asset type: real estate, vehicles, other goods or all."
+          },
+          "page": { "type": "integer", "minimum": 1, "default": 1 },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+        }
+      }
+    },
+    {
+      "name": "get_auction_detail",
+      "description": "Get the full consolidated detail of one auction: general data, managing authority, assets grouped by lot (with per-lot financials), bids, and computed legal award thresholds (art. 671 LEC).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^SUB-[A-Z]{2}-\\d{4}-[A-Za-z0-9]+$",
+            "description": "BOE auction identifier, e.g. SUB-JA-2026-260225."
+          }
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "calculate_auction_metrics",
+      "description": "Compute the 50% and 70% reference values and a 5% deposit estimate for a given amount, to evaluate hypotheticals without querying a real auction.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Positive amount in euros (typically the appraisal value)."
+          }
+        },
+        "required": ["value"]
+      }
+    },
+    {
+      "name": "list_provinces",
+      "description": "List the 52 Spanish provinces with their numeric code, needed for the province filter of search_auctions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "resources": [],
+  "prompts": []
+}

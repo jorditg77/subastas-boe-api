@@ -1,8 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { z } from 'zod';
 import { buildMcpServer } from '../src/mcp/runtime.js';
 import { TOOLS, listProvincesTool, calculateAuctionMetricsTool, searchAuctionsTool, getAuctionDetailTool } from '../src/mcp/tools.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+test('el server-card.json de Smithery está sincronizado con las tools reales', () => {
+  const card = JSON.parse(
+    readFileSync(join(__dirname, '..', 'landing', '.well-known', 'mcp', 'server-card.json'), 'utf-8')
+  );
+  const cardToolNames = card.tools.map((t) => t.name).sort();
+  const realToolNames = TOOLS.map((t) => t.name).sort();
+  assert.deepStrictEqual(cardToolNames, realToolNames, 'las tools del server-card deben coincidir con src/mcp/tools.js');
+  for (const t of card.tools) {
+    assert.ok(t.description && t.inputSchema, `${t.name} sin description o inputSchema en el server-card`);
+  }
+});
 
 test('buildMcpServer registra las 4 tools sin lanzar', () => {
   const server = buildMcpServer();
