@@ -5,7 +5,7 @@ export default [
   js.configs.recommended,
   prettier,
   {
-    files: ['src/**/*.js', 'tests/**/*.js', 'scripts/**/*.js'],
+    files: ['src/**/*.js', 'tests/**/*.js', 'scripts/**/*.js', 'apify/**/*.js'],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
