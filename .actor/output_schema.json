@@ -1,0 +1,13 @@
+{
+  "actorOutputSchemaVersion": 1,
+  "title": "Spain BOE Auctions output",
+  "description": "Consolidated BOE auctions stored in the default dataset.",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "Auctions",
+      "description": "The scraped auctions (summaries or full consolidated detail) in the default dataset.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    }
+  }
+}
