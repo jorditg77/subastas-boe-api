@@ -1,0 +1,24 @@
+{
+  "actorSpecification": 1,
+  "views": {
+    "overview": {
+      "title": "Auctions overview",
+      "description": "Consolidated auctions from the BOE portal.",
+      "transformation": {
+        "fields": ["id", "status", "authority", "caseNumber", "expectedEndDate", "description", "detailUrl"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "id": { "label": "Auction ID" },
+          "status": { "label": "Status" },
+          "authority": { "label": "Authority / Court" },
+          "caseNumber": { "label": "Case no." },
+          "expectedEndDate": { "label": "Ends" },
+          "description": { "label": "Description" },
+          "detailUrl": { "label": "BOE link", "format": "link" }
+        }
+      }
+    }
+  }
+}
