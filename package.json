@@ -2,6 +2,7 @@
   "name": "subastas-boe-api",
   "version": "0.1.0",
   "description": "API REST + MCP Server para subastas del BOE. Zero-Disk para hardware limitado.",
+  "license": "AGPL-3.0-or-later",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

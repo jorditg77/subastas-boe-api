@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Apify Actor for Spain BOE auctions. Reuses the scrapers in ../src.",
+  "license": "AGPL-3.0-or-later",
   "main": "main.js",
   "scripts": {
     "start": "node main.js"

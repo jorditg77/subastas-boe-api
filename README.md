@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/jorditg77/subastas-boe-api/actions/workflows/test.yml/badge.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
-![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 API REST + servidor MCP que consolida en un único JSON limpio los datos dispersos en las cuatro pestañas (**General**, **Autoridad**, **Bienes**, **Pujas**) del portal oficial de subastas judiciales, notariales y tributarias del Estado español: [subastas.boe.es](https://subastas.boe.es).
 
@@ -242,4 +242,4 @@ Proyecto dividido en dos bloques: completar el producto técnico y, después, ma
 
 ## Licencia
 
-Código fuente disponible bajo **[PolyForm Noncommercial License 1.0.0](LICENSE)**: puedes leerlo, estudiarlo y usarlo con fines no comerciales (educativos, de investigación, portfolio). El uso comercial del código —incluido desplegar una instancia propia del servicio— no está permitido sin autorización expresa del autor. El servicio en sí se ofrece comercialmente en [RapidAPI](https://rapidapi.com/jorditg77/api/spain-boe-auctions-property-foreclosures) · más información en [subastas.dev](https://subastas.dev).
+Código fuente bajo **[GNU AGPL-3.0](LICENSE)**: puedes leerlo, estudiarlo, usarlo y modificarlo libremente. La cláusula *Affero* añade una condición importante: si ejecutas una versión modificada de este software como servicio accesible por red, debes ofrecer el código fuente de esa versión a sus usuarios. El servicio oficial se ofrece en [RapidAPI](https://rapidapi.com/jorditg77/api/spain-boe-auctions-property-foreclosures) y [Apify](https://apify.com) · más información en [subastas.dev](https://subastas.dev).
